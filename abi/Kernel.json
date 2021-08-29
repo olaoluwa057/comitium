@@ -37,6 +37,19 @@
     "type": "fallback"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "c__0x6767df2e",
+        "type": "bytes32"
+      }
+    ],
+    "name": "c_0x6767df2e",
+    "outputs": [],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
     "stateMutability": "payable",
     "type": "receive"
   }

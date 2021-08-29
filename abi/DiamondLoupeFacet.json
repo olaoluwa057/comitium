@@ -2,6 +2,19 @@
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "c__0xbf38fe1c",
+        "type": "bytes32"
+      }
+    ],
+    "name": "c_0xbf38fe1c",
+    "outputs": [],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "_functionSelector",
         "type": "bytes4"

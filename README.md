@@ -1,11 +1,11 @@
-# EnterDao Supernova
+# EnterDao Kernel
 
 Implements continuous rewards for staking ENTR in the DAO. Implements logic for determining DAO voting power based upon amount of ENTR deposited (which becomes vENTR) plus a multiplier (up to 2x) awarded to those who lock their ENTR in the DAO for a specified period (up to 1 year). Those that lock their vENTR for 1 year receive a 2x multiplier; those that lock their vENTR for 6 months receive a 1.5x multiplier, and so on. Also allows users to delegate their vENTR voting power to a secondary wallet address.
 **NOTE:** The vENTR multiplier ONLY affects voting power; it does NOT affect rewards. All users who stake ENTR receive the same reward rate regardless of the amount of time they have locked or not locked.
 
 ##  Contracts
-### Supernova.sol
-Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vENTR voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/EnterDAO/ENTER-Supernova/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/EnterDAO/ENTER-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vENTR) a wallet address has for use in voting on or creating DAO proposals.
+### Kernel.sol
+Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vENTR voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/EnterDAO/ENTER-Kernel/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/EnterDAO/ENTER-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vENTR) a wallet address has for use in voting on or creating DAO proposals.
 #### Actions
 - deposit
 - withdraw
@@ -13,7 +13,7 @@ Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period t
 - delegate
 
 ### Rewards.sol
-Rewards users who stake their ENTR on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/ENTER-DAO/ENTER-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the ENTR rewards. The `Supernova` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
+Rewards users who stake their ENTR on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/ENTER-DAO/ENTER-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the ENTR rewards. The `Kernel` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
 #### How it works
 1. every time the `acKFunds` function detects a balance change, the multiplier is recalculated by the following formula:
 ```
@@ -25,12 +25,12 @@ newOwed = currentlyOwed + userBalance * (currentMultiplier - oldUserMultiplier)
 
 where:
 - oldUserMultiplier is the multiplier at the time of last user action
-- userBalance = supernova.balanceOf(user) -- the amount of $ENTR staked into the Supernova
+- userBalance = kernel.balanceOf(user) -- the amount of $ENTR staked into the Kernel
 ```
 3. update the oldUserMultiplier with the current multiplier -- signaling that we already calculated how much was owed to the user since his last action
 
 ## Smart Contract Architecture
-EnterDao Supernova is a fork of BarnBridge Barn. It shares the same architecture:
+EnterDao Kernel is a fork of BarnBridge Barn. It shares the same architecture:
 
 ![dao sc architecture](https://user-images.githubusercontent.com/4047772/120464398-8c8cf400-c3a5-11eb-8cb8-a105eeaaa9e9.png)
 
@@ -71,7 +71,7 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     # Restart terminal and/or run commands given at the end of the installation script
     nvm install 12
     nvm use 12
-### Use Git to pull down the EnterDao Supernova repository from GitHub
+### Use Git to pull down the EnterDao Kernel repository from GitHub
     git clone git@github.com:UniverseXYZ/XYZ-Supernova.git
     cd XYZ-Supernova
 ### Create config.ts using the sample template config.sample.ts
@@ -153,7 +153,7 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     npm run coverage
 
 ## Audits
-EnterDao Supernova is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
+EnterDao Kernel is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
 
 - [QuantStamp](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Quanstamp.pdf)
 - [Haechi](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Haechi.pdf)
@@ -165,9 +165,9 @@ DiamondCutFacet deployed to:
 DiamondLoupeFacet deployed to:
 OwnershipFacet deployed to: 
 ChangeRewardsFacet deployed to:
-SupernovaFacet deployed at:
+KernelFacet deployed at:
 -----
-Supernova deployed at:
+Kernel deployed at:
 Rewards deployed at:
 ```
 

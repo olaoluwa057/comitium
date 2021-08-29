@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./interfaces/ISupernova.sol";
+import "./interfaces/IKernel.sol";
 
 contract Rewards is Ownable {
     using SafeMath for uint256;
@@ -30,26 +30,26 @@ contract Rewards is Ownable {
     mapping(address => uint256) public userMultiplier;
     mapping(address => uint256) public owed;
 
-    ISupernova public supernova;
+    IKernel public kernel;
     IERC20 public rewardToken;
 
     event Claim(address indexed user, uint256 amount);
 
-    constructor(address _owner, address _token, address _supernova) {
+    constructor(address _owner, address _token, address _kernel) {
         require(_token != address(0), "reward token must not be 0x0");
-        require(_supernova != address(0), "supernova address must not be 0x0");
+        require(_kernel != address(0), "kernel address must not be 0x0");
 
         transferOwnership(_owner);
 
         rewardToken = IERC20(_token);
-        supernova = ISupernova(_supernova);
+        kernel = IKernel(_kernel);
     }
 
-    // registerUserAction is called by the Supernova every time the user does a deposit or withdrawal in order to
+    // registerUserAction is called by the Kernel every time the user does a deposit or withdrawal in order to
     // account for the changes in reward that the user should get
     // it updates the amount owed to the user without transferring the funds
     function registerUserAction(address user) public {
-        require(msg.sender == address(supernova), 'only callable by supernova');
+        require(msg.sender == address(kernel), 'only callable by kernel');
 
         _calculateOwed(user);
     }
@@ -84,7 +84,7 @@ contract Rewards is Ownable {
             return;
         }
 
-        uint256 totalStakedEntr = supernova.entrStaked();
+        uint256 totalStakedEntr = kernel.entrStaked();
         // if there's no entr staked, it doesn't make sense to ackFunds because there's nobody to distribute them to
         // and the calculation would fail anyways due to division by 0
         if (totalStakedEntr == 0) {
@@ -131,12 +131,12 @@ contract Rewards is Ownable {
         }
     }
 
-    // setSupernova sets the address of the EnterDao Supernova into the state variable
-    function setSupernova(address _supernova) public {
-        require(_supernova != address(0), 'supernova address must not be 0x0');
+    // setKernel sets the address of the EnterDao Kernel into the state variable
+    function setKernel(address _kernel) public {
+        require(_kernel != address(0), 'kernel address must not be 0x0');
         require(msg.sender == owner(), '!owner');
 
-        supernova = ISupernova(_supernova);
+        kernel = IKernel(_kernel);
     }
 
     // _pullToken calculates the amount based on the time passed since the last pull relative
@@ -185,6 +185,6 @@ contract Rewards is Ownable {
     function _userPendingReward(address user) internal view returns (uint256) {
         uint256 multiplier = currentMultiplier.sub(userMultiplier[user]);
 
-        return supernova.balanceOf(user).mul(multiplier).div(decimals);
+        return kernel.balanceOf(user).mul(multiplier).div(decimals);
     }
 }

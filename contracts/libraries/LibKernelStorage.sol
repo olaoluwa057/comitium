@@ -5,8 +5,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IRewards.sol";
 
-library LibSupernovaStorage {
-    bytes32 constant STORAGE_POSITION = keccak256("com.enterdao.supernova.storage");
+library LibKernelStorage {
+    bytes32 constant STORAGE_POSITION = keccak256("com.enterdao.kernel.storage");
 
     struct Checkpoint {
         uint256 timestamp;
@@ -39,7 +39,7 @@ library LibSupernovaStorage {
         IRewards rewards;
     }
 
-    function supernovaStorage() internal pure returns (Storage storage ds) {
+    function kernelStorage() internal pure returns (Storage storage ds) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             ds.slot := position

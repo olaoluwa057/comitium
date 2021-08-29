@@ -2,9 +2,9 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "../libraries/LibSupernovaStorage.sol";
+import "../libraries/LibKernelStorage.sol";
 
-interface ISupernova {
+interface IKernel {
     // deposit allows a user to add more entr to his staked balance
     function deposit(uint256 amount) external;
 
@@ -30,7 +30,7 @@ interface ISupernova {
     function balanceAtTs(address user, uint256 timestamp) external view returns (uint256);
 
     // stakeAtTs returns the Stake object of the user that was valid at `timestamp`
-    function stakeAtTs(address user, uint256 timestamp) external view returns (LibSupernovaStorage.Stake memory);
+    function stakeAtTs(address user, uint256 timestamp) external view returns (LibKernelStorage.Stake memory);
 
     // votingPower returns the voting power (bonus included) + delegated voting power for a user at the current block
     function votingPower(address user) external view returns (uint256);

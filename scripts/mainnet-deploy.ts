@@ -1,6 +1,6 @@
 import * as deploy from '../test/helpers/deploy';
 import { diamondAsFacet } from '../test/helpers/diamond';
-import { SupernovaFacet, Rewards } from '../typechain';
+import { KernelFacet, Rewards } from '../typechain';
 import { BigNumber } from 'ethers';
 import * as helpers from '../test/helpers/helpers';
 
@@ -26,22 +26,22 @@ async function main () {
     const crf = await deploy.deployContract('ChangeRewardsFacet');
     console.log(`ChangeRewardsFacet deployed to: ${crf.address}`);
 
-    const supernovaFacet = await deploy.deployContract('SupernovaFacet');
-    console.log(`SupernovaFacet deployed at: ${supernovaFacet.address}`);
+    const KernelFacet = await deploy.deployContract('KernelFacet');
+    console.log(`KernelFacet deployed at: ${KernelFacet.address}`);
 
     const diamond = await deploy.deployDiamond(
-        'Supernova',
-        [cutFacet, loupeFacet, ownershipFacet, crf, supernovaFacet],
+        'Kernel',
+        [cutFacet, loupeFacet, ownershipFacet, crf, KernelFacet],
         _owner,
     );
-    console.log(`Supernova deployed at: ${diamond.address}`);
+    console.log(`Kernel deployed at: ${diamond.address}`);
 
     const rewards = (await deploy.deployContract('Rewards', [_owner, _entr, diamond.address])) as Rewards;
     console.log(`Rewards deployed at: ${rewards.address}`);
 
-    console.log('Calling initSupernova');
-    const supernova = (await diamondAsFacet(diamond, 'SupernovaFacet')) as SupernovaFacet;
-    await supernova.initSupernova(_entr, rewards.address);
+    console.log('Calling initKernel');
+    const kernel = (await diamondAsFacet(diamond, 'KernelFacet')) as KernelFacet;
+    await kernel.initKernel(_entr, rewards.address);
 
     await rewards.setupPullToken(_cv, startTs, endTs, rewardsAmount);
 }

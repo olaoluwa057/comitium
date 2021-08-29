@@ -3,15 +3,13 @@ import { BigNumber, Signer } from 'ethers';
 import * as helpers from './helpers/helpers';
 import * as time from './helpers/time';
 import { expect } from 'chai';
-import { SupernovaMock, Erc20Mock, Rewards } from '../typechain';
+import { KernelMock, Erc20Mock, Rewards } from '../typechain';
 import * as deploy from './helpers/deploy';
-
-const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 describe('Rewards', function () {
     const amount = BigNumber.from(100).mul(BigNumber.from(10).pow(18));
 
-    let supernova: SupernovaMock, entr: Erc20Mock, rewards: Rewards;
+    let kernel: KernelMock, entr: Erc20Mock, rewards: Rewards;
 
     let user: Signer, userAddress: string;
     let happyPirate: Signer, happyPirateAddress: string;
@@ -29,14 +27,14 @@ describe('Rewards', function () {
         await setupSigners();
         await setupContracts();
 
-        supernova = (await deploy.deployContract('SupernovaMock')) as SupernovaMock;
+        kernel = (await deploy.deployContract('KernelMock')) as KernelMock;
 
         rewards = (await deploy.deployContract(
             'Rewards',
-            [await treasury.getAddress(), entr.address, supernova.address])
+            [await treasury.getAddress(), entr.address, kernel.address])
         ) as Rewards;
 
-        await supernova.setRewards(rewards.address);
+        await kernel.setRewards(rewards.address);
     });
 
     beforeEach(async function () {
@@ -124,19 +122,19 @@ describe('Rewards', function () {
             ).to.be.revertedWith('contract is disabled');
         });
 
-        it('can set supernova address if called by owner', async function () {
-            await expect(rewards.connect(happyPirate).setSupernova(supernova.address))
+        it('can set kernel address if called by owner', async function () {
+            await expect(rewards.connect(happyPirate).setKernel(kernel.address))
                 .to.be.revertedWith('!owner');
 
-            await expect(rewards.connect(treasury).setSupernova(flyingParrotAddress))
+            await expect(rewards.connect(treasury).setKernel(flyingParrotAddress))
                 .to.not.be.reverted;
 
-            expect(await rewards.supernova()).to.equal(flyingParrotAddress);
+            expect(await rewards.kernel()).to.equal(flyingParrotAddress);
         });
 
-        it('reverts if setSupernova called with 0x0', async function () {
-            await expect(rewards.connect(treasury).setSupernova(helpers.zeroAddress))
-                .to.be.revertedWith('supernova address must not be 0x0');
+        it('reverts if setKernel called with 0x0', async function () {
+            await expect(rewards.connect(treasury).setKernel(helpers.zeroAddress))
+                .to.be.revertedWith('kernel address must not be 0x0');
         });
     });
 
@@ -145,7 +143,7 @@ describe('Rewards', function () {
             expect(await rewards.currentMultiplier()).to.equal(0);
 
             await entr.mint(rewards.address, amount);
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
 
@@ -161,7 +159,7 @@ describe('Rewards', function () {
 
         it('does not change multiplier on funds balance decrease but changes balance', async function () {
             await entr.mint(rewards.address, amount);
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
             expect(await rewards.currentMultiplier()).to.equal(helpers.tenPow18);
@@ -182,17 +180,17 @@ describe('Rewards', function () {
     });
 
     describe('registerUserAction', function () {
-        it('can only be called by supernova', async function () {
+        it('can only be called by kernel', async function () {
             await expect(rewards.connect(happyPirate).registerUserAction(flyingParrotAddress))
-                .to.be.revertedWith('only callable by supernova');
+                .to.be.revertedWith('only callable by kernel');
 
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
 
-            await expect(supernova.callRegisterUserAction(happyPirateAddress)).to.not.be.reverted;
+            await expect(kernel.callRegisterUserAction(happyPirateAddress)).to.not.be.reverted;
         });
 
         it('does not pull entr if function is disabled', async function () {
-            await supernova.callRegisterUserAction(happyPirateAddress);
+            await kernel.callRegisterUserAction(happyPirateAddress);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(0);
 
@@ -201,10 +199,10 @@ describe('Rewards', function () {
             const startAt = await helpers.getLatestBlockTimestamp();
             const endsAt = startAt + 60 * 60 * 24 * 7;
             await rewards.connect(treasury).setupPullToken(await communityVault.getAddress(), startAt, endsAt, amount);
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
 
             await helpers.moveAtTimestamp(startAt + time.day);
-            await supernova.callRegisterUserAction(happyPirateAddress);
+            await kernel.callRegisterUserAction(happyPirateAddress);
 
             // total time is 7 days & total amount is 100  => 1 day worth of rewards ~14.28
             const balance = await entr.balanceOf(rewards.address);
@@ -217,12 +215,12 @@ describe('Rewards', function () {
 
             await helpers.moveAtTimestamp(end + 1 * time.day);
 
-            await supernova.callRegisterUserAction(happyPirateAddress);
+            await kernel.callRegisterUserAction(happyPirateAddress);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(amount);
 
             await helpers.moveAtTimestamp(end + 1 * time.day);
-            await supernova.callRegisterUserAction(happyPirateAddress);
+            await kernel.callRegisterUserAction(happyPirateAddress);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(amount);
         });
@@ -230,7 +228,7 @@ describe('Rewards', function () {
         it('updates the amount owed to user but does not send funds', async function () {
             await entr.connect(communityVault).approve(rewards.address, amount);
 
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
 
             await helpers.moveAtTimestamp(defaultStartAt + time.day);
 
@@ -250,7 +248,7 @@ describe('Rewards', function () {
         it('transfers the amount to user', async function () {
             const { start, end } = await setupRewards();
 
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
             const depositTs = await helpers.getLatestBlockTimestamp();
 
             const expectedBalance1 = calcTotalReward(start, depositTs, end - start, amount);
@@ -271,19 +269,19 @@ describe('Rewards', function () {
         it('works with multiple users', async function () {
             const { start, end } = await setupRewards();
 
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
             const deposit1Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance1 = calcTotalReward(start, deposit1Ts, end - start, amount);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1);
 
-            await supernova.deposit(flyingParrotAddress, amount);
+            await kernel.deposit(flyingParrotAddress, amount);
             const deposit2Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance2 = calcTotalReward(deposit1Ts, deposit2Ts, end - start, amount);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
 
-            await supernova.deposit(userAddress, amount);
+            await kernel.deposit(userAddress, amount);
             const deposit3Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance3 = calcTotalReward(deposit2Ts, deposit3Ts, end - start, amount);
 
@@ -302,20 +300,20 @@ describe('Rewards', function () {
         it('works fine after claim', async function () {
             const { start, end } = await setupRewards();
 
-            await supernova.deposit(happyPirateAddress, amount);
+            await kernel.deposit(happyPirateAddress, amount);
             const deposit1Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance1 = calcTotalReward(start, deposit1Ts, end - start, amount);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1);
 
-            await supernova.deposit(flyingParrotAddress, amount);
+            await kernel.deposit(flyingParrotAddress, amount);
             const deposit2Ts = await helpers.getLatestBlockTimestamp();
             const multiplierAtDeposit2 = await rewards.currentMultiplier();
             const expectedBalance2 = calcTotalReward(deposit1Ts, deposit2Ts, end - start, amount);
 
             expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
 
-            await supernova.deposit(userAddress, amount);
+            await kernel.deposit(userAddress, amount);
             const deposit3Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance3 = calcTotalReward(deposit2Ts, deposit3Ts, end - start, amount);
 
