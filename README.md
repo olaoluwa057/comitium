@@ -5,7 +5,7 @@ Implements continuous rewards for staking ENTR in the DAO. Implements logic for 
 
 ##  Contracts
 ### Supernova.sol
-Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vENTR voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/UniverseXYZ/XYZ-Supernova/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/UniverseXYZ/XYZ-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vENTR) a wallet address has for use in voting on or creating DAO proposals.
+Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vENTR voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/EnterDAO/ENTER-Supernova/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/EnterDAO/ENTER-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vENTR) a wallet address has for use in voting on or creating DAO proposals.
 #### Actions
 - deposit
 - withdraw
@@ -13,7 +13,7 @@ Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period t
 - delegate
 
 ### Rewards.sol
-Rewards users who stake their ENTR on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/UniverseXYZ/XYZ-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the ENTR rewards. The `Supernova` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
+Rewards users who stake their ENTR on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/ENTER-DAO/ENTER-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the ENTR rewards. The `Supernova` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
 #### How it works
 1. every time the `acKFunds` function detects a balance change, the multiplier is recalculated by the following formula:
 ```
@@ -161,14 +161,14 @@ EnterDao Supernova is a fork of BarnBridge Barn. Here you can find the audits fo
 ## Deployed contracts
 ### Mainnet
 ```shell
-DiamondCutFacet deployed to: 0x441710f49EFe5CB0F50ffA4C24066269C141A68E
-DiamondLoupeFacet deployed to: 0x75E333B48d71886C433c7BeB879a6601bd801Ec3
-OwnershipFacet deployed to: 0x5c7cb19978CF51594A121C650D031761C73e75Cc
-ChangeRewardsFacet deployed to: 0x7263ca0d7225BB4313E9Bc3e799eB2A48EcDF003
-SupernovaFacet deployed at: 0x8aA4387412f18543b8D4cf16ef60E868a74F1f0d
+DiamondCutFacet deployed to: 
+DiamondLoupeFacet deployed to:
+OwnershipFacet deployed to: 
+ChangeRewardsFacet deployed to:
+SupernovaFacet deployed at:
 -----
-Supernova deployed at: 0x7b86600211e62B597E7CEA03476b9EFEb6872962
-Rewards deployed at: 0xF306Ad6a3E2aBd5CFD6687A2C86998f1d9c31205
+Supernova deployed at:
+Rewards deployed at:
 ```
 
 ## Discussion
