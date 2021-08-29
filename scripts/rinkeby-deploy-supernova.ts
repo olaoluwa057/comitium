@@ -11,7 +11,7 @@ const facetAddresses = new Map([
     ['OwnershipFacet', '0x45c1a21C800119aF24F9968380D5570A25C3cb8F'],
 ]);
 
-const _xyz = '0x86dEddCFc3a7DBeE68cDADA65Eed3D3b70F4fe24';
+const _entr = '0x86dEddCFc3a7DBeE68cDADA65Eed3D3b70F4fe24';
 const _owner = '0x39aE4d18f1feb3708CaCCC39F1Af3e8C26D577d5';
 const _dao = '0x52eea6822627819416531D4C0B221AE52652938a';
 
@@ -39,12 +39,12 @@ async function main () {
     );
     console.log(`Supernova deployed at: ${diamond.address}`);
 
-    const rewards = await deploy.deployContract('Rewards', [_owner, _xyz, diamond.address]);
+    const rewards = await deploy.deployContract('Rewards', [_owner, _entr, diamond.address]);
     console.log(`Rewards deployed at: ${rewards.address}`);
 
     console.log('Calling initSupernova');
     const supernova = (await diamondAsFacet(diamond, 'SupernovaFacet')) as SupernovaFacet;
-    await supernova.initSupernova(_xyz, rewards.address);
+    await supernova.initSupernova(_entr, rewards.address);
 }
 
 async function getFacets (): Promise<Contract[]> {
