@@ -3,10 +3,11 @@ import * as helpers from '../test/helpers/helpers';
 import * as diamond from '../test/helpers/diamond';
 
 const facetAddresses = new Map([
-    ['DiamondCutFacet', '0xED5B6c65140FA8681c3DFf6BA5EFDb7334dff870'],
-    ['DiamondLoupeFacet', '0x2bC15AC06bB13059322415CBE2FF80c34Bd1d703'],
-    ['OwnershipFacet', '0x85cC2f131015bbc6B22bd95597468e08aD6725E8'],
-    ['KernelFacet', '0x15075fABB6A60C966637A3b500DA74E71520c060'],
+    ['DiamondCutFacet', '0xD4440dC5A06182f0e936C3a1B2472b3F16E29f62'],
+    ['DiamondLoupeFacet', '0xC550FAcBB8E2C4483aa0f84774b2C2E06e38f958'],
+    ['OwnershipFacet', '0x1B2D2C069fCF035d865E439Bb1B5584524FD87ce'],
+    ['ChangeRewardsFacet', '0x01C7224D42De4b11451E8BfBE721ccaFe79fe1c5'],
+    ['KernelFacet', '0x6A1819f39596ADd71F22c0777B161f278DFc882a'],
 ]);
 
 async function getFacets (): Promise<Contract[]> {
@@ -38,7 +39,6 @@ async function getCut () {
 // async function main () {
 //     console.log(await getCut());
 // }
-//
 // main()
 //     .then(() => process.exit(0))
 //     .catch(error => {
@@ -48,9 +48,9 @@ async function getCut () {
 
 module.exports = [
     [
-        [ '0xED5B6c65140FA8681c3DFf6BA5EFDb7334dff870', 0, [ '0x1f931c1c' ] ],
+        ['0xD4440dC5A06182f0e936C3a1B2472b3F16E29f62', 0, ['0x1f931c1c']],
         [
-            '0x2bC15AC06bB13059322415CBE2FF80c34Bd1d703',
+            '0xC550FAcBB8E2C4483aa0f84774b2C2E06e38f958',
             0,
             [
                 '0xcdffacc6',
@@ -61,27 +61,28 @@ module.exports = [
             ],
         ],
         [
-            '0x85cC2f131015bbc6B22bd95597468e08aD6725E8',
+            '0x1B2D2C069fCF035d865E439Bb1B5584524FD87ce',
             0,
             [ '0x8da5cb5b', '0xf2fde38b' ],
         ],
+        [ '0x01C7224D42De4b11451E8BfBE721ccaFe79fe1c5', 0, [ '0x8d240d8b' ] ],
         [
-            '0x15075fABB6A60C966637A3b500DA74E71520c060',
+            '0x6A1819f39596ADd71F22c0777B161f278DFc882a',
             0,
             [
                 '0x65a5d5f0', '0x417edd4d',
-                '0x70a08231', '0x2082b4d1',
-                '0xc2077e81', '0xf77f962f',
-                '0x5c19a95c', '0x169df064',
-                '0xd265a115', '0xb6b55f25',
-                '0xae4c89a6', '0xdd467064',
-                '0x71ef7663', '0x7a141096',
+                '0x70a08231', '0x5c19a95c',
+                '0x169df064', '0xd265a115',
+                '0xb6b55f25', '0xbfc10279',
+                '0xc5434072', '0x4df9f446',
+                '0xd828d101', '0xdd467064',
+                '0x7a141096', '0x8e4a5248',
                 '0x18ab6a3c', '0x6f121578',
-                '0x71ced98f', '0xbef624d8',
-                '0xbf0ae48c', '0xc07473f6',
-                '0xcbf8eda9', '0x2e1a7d4d',
+                '0xbef624d8', '0xbf0ae48c',
+                '0xc07473f6', '0xcbf8eda9',
+                '0x2e1a7d4d',
             ],
         ],
     ],
-    '0x89d652C64d7CeE18F5DF53B24d9D29D130b18798',
+    '0x66D13c577Af9B2Ae16f222eC0338f426FcA399d0',
 ];

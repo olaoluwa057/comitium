@@ -1,4 +1,4 @@
-import * as deploy from '../test/helpers/deploy';
+import * as deploy from '../../test/helpers/deploy';
 
 async function main () {
     const cutFacet = await deploy.deployContract('DiamondCutFacet');

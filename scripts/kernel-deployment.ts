@@ -4,8 +4,8 @@ import { KernelFacet, Rewards } from '../typechain';
 import { BigNumber } from 'ethers';
 import * as helpers from '../test/helpers/helpers';
 
-const _owner = '0x89d652C64d7CeE18F5DF53B24d9D29D130b18798';
-const _entr = '0x0391D2021f89DC339F60Fff84546EA23E337750f';
+const OWNER = '0x66D13c577Af9B2Ae16f222eC0338f426FcA399d0';
+const ENTR = '0x822a5c31679f4A580dEb6aE4596437AcDB9DDcAb';
 
 // needed for rewards setup
 const _cv = '0xA3C299eEE1998F45c20010276684921EBE6423D9';
@@ -32,18 +32,18 @@ async function main () {
     const diamond = await deploy.deployDiamond(
         'Kernel',
         [cutFacet, loupeFacet, ownershipFacet, crf, KernelFacet],
-        _owner,
+        OWNER,
     );
     console.log(`Kernel deployed at: ${diamond.address}`);
 
-    const rewards = (await deploy.deployContract('Rewards', [_owner, _entr, diamond.address])) as Rewards;
+    const rewards = (await deploy.deployContract('Rewards', [OWNER, ENTR, diamond.address])) as Rewards;
     console.log(`Rewards deployed at: ${rewards.address}`);
 
     console.log('Calling initKernel');
     const kernel = (await diamondAsFacet(diamond, 'KernelFacet')) as KernelFacet;
-    await kernel.initKernel(_entr, rewards.address);
+    await kernel.initKernel(ENTR, rewards.address);
 
-    await rewards.setupPullToken(_cv, startTs, endTs, rewardsAmount);
+    // await rewards.setupPullToken(_cv, startTs, endTs, rewardsAmount);
 }
 
 main()

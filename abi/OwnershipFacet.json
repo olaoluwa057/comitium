@@ -19,19 +19,6 @@
     "type": "event"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "c__0x6030f9da",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0x6030f9da",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "owner",
     "outputs": [

@@ -1,5 +1,5 @@
-import * as deploy from '../test/helpers/deploy';
-import * as diamond from '../test/helpers/diamond';
+import * as deploy from '../../test/helpers/deploy';
+import * as diamond from '../../test/helpers/diamond';
 
 async function main () {
     const crf = await deploy.deployContract('ChangeRewardsFacet');

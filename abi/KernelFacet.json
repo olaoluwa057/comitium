@@ -208,19 +208,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "c__0xd247e7af",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0xd247e7af",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "to",
         "type": "address"

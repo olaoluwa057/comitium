@@ -79,19 +79,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "c__0x06ce9834",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0x06ce9834",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "claim",
     "outputs": [

@@ -158,7 +158,26 @@ EnterDao Kernel is a fork of BarnBridge Barn. Here you can find the audits for t
 - [QuantStamp](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Quanstamp.pdf)
 - [Haechi](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Haechi.pdf)
 
-## Deployed contracts
+## Deployment
+
+Steps for deploying the Kernel:
+1. Set the `OWNER` of the Kernel in `./scripts/kernel-deployment.ts`
+2. Set the `ENTR` token address in  `./scripts/kernel-deployment.ts`
+By default the script **will not set the pull token** in `Rewards.sol`
+3. Execute:
+```
+npx hardhat run --network {NETWORK} ./scripts/kernel-deployment.ts 
+```
+4. Verify the contracts:
+```
+npx hardhat verify --network {NETWORK} {CONTRACT_ADDRESS} {ARGUMENTS}
+```
+**Note**
+In order to verify the Diamond, you will need to extract the Faucets. Use the `diamond-arguments-etherescan.ts` script to extract them. Once you have them you can execute:
+```
+npx hardhat verify --network rinkeby --constructor-args ./scripts/rinkeby-diamond-arguments-etherscan.ts {DIAMOND_ADDRESS}
+```
+
 ### Mainnet
 ```shell
 DiamondCutFacet deployed to: 
@@ -169,6 +188,18 @@ KernelFacet deployed at:
 -----
 Kernel deployed at:
 Rewards deployed at:
+```
+
+### Rinkeby
+```shell
+DiamondCutFacet deployed to: 0xD4440dC5A06182f0e936C3a1B2472b3F16E29f62
+DiamondLoupeFacet deployed to: 0xC550FAcBB8E2C4483aa0f84774b2C2E06e38f958
+OwnershipFacet deployed to: 0x1B2D2C069fCF035d865E439Bb1B5584524FD87ce
+ChangeRewardsFacet deployed to: 0x01C7224D42De4b11451E8BfBE721ccaFe79fe1c5
+KernelFacet deployed at: 0x6A1819f39596ADd71F22c0777B161f278DFc882a
+-----
+Kernel deployed at: 0x48fc1fc9F88fdc98302E40aF50B32B06dDeB7713
+Rewards deployed at: 0x9778409eF13D797F9218dC71bcfc368976D47B5d
 ```
 
 ## Discussion
