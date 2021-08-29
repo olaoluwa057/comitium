@@ -21,8 +21,8 @@ contract SupernovaFacet {
     event DelegatedPowerIncreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
     event DelegatedPowerDecreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
 
-    function initSupernova(address _xyz, address _rewards) public {
-        require(_xyz != address(0), "XYZ address must not be 0x0");
+    function initSupernova(address _entr, address _rewards) public {
+        require(_entr != address(0), "ENTR address must not be 0x0");
 
         LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
 
@@ -31,16 +31,16 @@ contract SupernovaFacet {
 
         ds.initialized = true;
 
-        ds.xyz = IERC20(_xyz);
+        ds.entr = IERC20(_entr);
         ds.rewards = IRewards(_rewards);
     }
 
-    // deposit allows a user to add more xyz to his staked balance
+    // deposit allows a user to add more entr to his staked balance
     function deposit(uint256 amount) public {
         require(amount > 0, "Amount must be greater than 0");
 
         LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
-        uint256 allowance = ds.xyz.allowance(msg.sender, address(this));
+        uint256 allowance = ds.entr.allowance(msg.sender, address(this));
         require(allowance >= amount, "Token allowance too small");
 
         // this must be called before the user's balance is updated so the rewards contract can calculate
@@ -51,7 +51,7 @@ contract SupernovaFacet {
 
         uint256 newBalance = balanceOf(msg.sender).add(amount);
         _updateUserBalance(ds.userStakeHistory[msg.sender], newBalance);
-        _updateLockedXyz(xyzStakedAtTs(block.timestamp).add(amount));
+        _updateLockedEntr(entrStakedAtTs(block.timestamp).add(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -60,8 +60,7 @@ contract SupernovaFacet {
 
             emit DelegatedPowerIncreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
-
-        ds.xyz.transferFrom(msg.sender, address(this), amount);
+        ds.entr.transferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, amount, newBalance);
     }
@@ -83,7 +82,7 @@ contract SupernovaFacet {
         }
 
         _updateUserBalance(ds.userStakeHistory[msg.sender], balance.sub(amount));
-        _updateLockedXyz(xyzStakedAtTs(block.timestamp).sub(amount));
+        _updateLockedEntr(entrStakedAtTs(block.timestamp).sub(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -93,7 +92,7 @@ contract SupernovaFacet {
             emit DelegatedPowerDecreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
 
-        ds.xyz.transfer(msg.sender, amount);
+        ds.entr.transfer(msg.sender, amount);
 
         emit Withdraw(msg.sender, amount, balance.sub(amount));
     }
@@ -154,12 +153,12 @@ contract SupernovaFacet {
         return delegate(address(0));
     }
 
-    // balanceOf returns the current XYZ balance of a user (bonus not included)
+    // balanceOf returns the current ENTR balance of a user (bonus not included)
     function balanceOf(address user) public view returns (uint256) {
         return balanceAtTs(user, block.timestamp);
     }
 
-    // balanceAtTs returns the amount of XYZ that the user currently staked (bonus NOT included)
+    // balanceAtTs returns the amount of ENTR that the user currently staked (bonus NOT included)
     function balanceAtTs(address user, uint256 timestamp) public view returns (uint256) {
         LibSupernovaStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
@@ -220,15 +219,15 @@ contract SupernovaFacet {
         return ownVotingPower.add(delegatedVotingPower);
     }
 
-    // xyzStaked returns the total raw amount of XYZ staked at the current block
-    function xyzStaked() public view returns (uint256) {
-        return xyzStakedAtTs(block.timestamp);
+    // entrStaked returns the total raw amount of ENTR staked at the current block
+    function entrStaked() public view returns (uint256) {
+        return entrStakedAtTs(block.timestamp);
     }
 
-    // xyzStakedAtTs returns the total raw amount of XYZ users have deposited into the contract
+    // entrStakedAtTs returns the total raw amount of ENTR users have deposited into the contract
     // it does not include any bonus
-    function xyzStakedAtTs(uint256 timestamp) public view returns (uint256) {
-        return _checkpointsBinarySearch(LibSupernovaStorage.supernovaStorage().xyzStakedHistory, timestamp);
+    function entrStakedAtTs(uint256 timestamp) public view returns (uint256) {
+        return _checkpointsBinarySearch(LibSupernovaStorage.supernovaStorage().entrStakedHistory, timestamp);
     }
 
     // delegatedPower returns the total voting power that a user received from other users
@@ -362,14 +361,14 @@ contract SupernovaFacet {
         }
     }
 
-    // _updateLockedXyz stores the new `amount` into the XYZ locked history
-    function _updateLockedXyz(uint256 amount) internal {
+    // _updateLockedEntr stores the new `amount` into the ENTR locked history
+    function _updateLockedEntr(uint256 amount) internal {
         LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
 
-        if (ds.xyzStakedHistory.length == 0 || ds.xyzStakedHistory[ds.xyzStakedHistory.length - 1].timestamp < block.timestamp) {
-            ds.xyzStakedHistory.push(LibSupernovaStorage.Checkpoint(block.timestamp, amount));
+        if (ds.entrStakedHistory.length == 0 || ds.entrStakedHistory[ds.entrStakedHistory.length - 1].timestamp < block.timestamp) {
+            ds.entrStakedHistory.push(LibSupernovaStorage.Checkpoint(block.timestamp, amount));
         } else {
-            LibSupernovaStorage.Checkpoint storage old = ds.xyzStakedHistory[ds.xyzStakedHistory.length - 1];
+            LibSupernovaStorage.Checkpoint storage old = ds.entrStakedHistory[ds.entrStakedHistory.length - 1];
             old.amount = amount;
         }
     }

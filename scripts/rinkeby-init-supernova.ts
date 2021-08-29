@@ -12,7 +12,7 @@ const facetAddresses = new Map([
     ['OwnershipFacet', '0x45c1a21C800119aF24F9968380D5570A25C3cb8F'],
 ]);
 
-const _xyz = '0x86dEddCFc3a7DBeE68cDADA65Eed3D3b70F4fe24';
+const _entr = '0x86dEddCFc3a7DBeE68cDADA65Eed3D3b70F4fe24';
 const _owner = '0x39aE4d18f1feb3708CaCCC39F1Af3e8C26D577d5';
 const _dao = '0x889AF716442bAdfB7F546745973dE9073CEBA6aC';
 
@@ -29,7 +29,7 @@ async function main () {
     const diamond = await ethers.getContractAt('Supernova', _supernova);
     //const rewards = await ethers.getContractAt('Rewards', _rewards);
 
-    const rewards = await deploy.deployContract('Rewards', [_owner, _xyz, diamond.address]);
+    const rewards = await deploy.deployContract('Rewards', [_owner, _entr, diamond.address]);
     console.log(`Rewards deployed at: ${rewards.address}`);
 
     await rewards.setupPullToken(_cv, startTs, endTs, rewardsAmount);

@@ -11,7 +11,7 @@ import { moveAtTimestamp } from './helpers/helpers';
 describe('Supernova', function () {
     const amount = BigNumber.from(100).mul(BigNumber.from(10).pow(18));
 
-    let supernova: SupernovaFacet, xyz: Erc20Mock, rewardsMock: RewardsMock, changeRewards: ChangeRewardsFacet;
+    let supernova: SupernovaFacet, entr: Erc20Mock, rewardsMock: RewardsMock, changeRewards: ChangeRewardsFacet;
 
     let user: Signer, userAddress: string;
     let happyPirate: Signer, happyPirateAddress: string;
@@ -21,7 +21,7 @@ describe('Supernova', function () {
 
     before(async function () {
         await setupSigners();
-        xyz = (await deploy.deployContract('ERC20Mock')) as Erc20Mock;
+        entr = (await deploy.deployContract('ERC20Mock')) as Erc20Mock;
 
         const cutFacet = await deploy.deployContract('DiamondCutFacet');
         const loupeFacet = await deploy.deployContract('DiamondLoupeFacet');
@@ -38,7 +38,7 @@ describe('Supernova', function () {
 
         changeRewards = (await diamondAsFacet(diamond, 'ChangeRewardsFacet')) as ChangeRewardsFacet;
         supernova = (await diamondAsFacet(diamond, 'SupernovaFacet')) as SupernovaFacet;
-        await supernova.initSupernova(xyz.address, rewardsMock.address);
+        await supernova.initSupernova(entr.address, rewardsMock.address);
     });
 
     beforeEach(async function () {
@@ -86,15 +86,15 @@ describe('Supernova', function () {
             await prepareAccount(user, amount);
             await supernova.connect(user).deposit(amount);
 
-            expect(await xyz.transferFromCalled()).to.be.true;
-            expect(await xyz.balanceOf(supernova.address)).to.be.equal(amount);
+            expect(await entr.transferFromCalled()).to.be.true;
+            expect(await entr.balanceOf(supernova.address)).to.be.equal(amount);
         });
 
-        it('updates the total of xyz locked', async function () {
+        it('updates the total of entr locked', async function () {
             await prepareAccount(user, amount);
             await supernova.connect(user).deposit(amount);
 
-            expect(await supernova.xyzStaked()).to.be.equal(amount);
+            expect(await supernova.entrStaked()).to.be.equal(amount);
         });
 
         it('updates the delegated user\'s voting power if user delegated his balance', async function () {
@@ -110,9 +110,9 @@ describe('Supernova', function () {
         });
 
         it('works with multiple deposit in same block', async function () {
-            const multicall = (await deploy.deployContract('MulticallMock', [supernova.address, xyz.address])) as MulticallMock;
+            const multicall = (await deploy.deployContract('MulticallMock', [supernova.address, entr.address])) as MulticallMock;
 
-            await xyz.mint(multicall.address, amount.mul(5));
+            await entr.mint(multicall.address, amount.mul(5));
 
             await multicall.multiDeposit(amount);
 
@@ -181,10 +181,10 @@ describe('Supernova', function () {
         });
     });
 
-    describe('xyzStakedAtTs', function () {
+    describe('entrStakedAtTs', function () {
         it('returns 0 if no checkpoint', async function () {
             const ts = await helpers.getLatestBlockTimestamp();
-            expect(await supernova.xyzStakedAtTs(ts)).to.be.equal(0);
+            expect(await supernova.entrStakedAtTs(ts)).to.be.equal(0);
         });
 
         it('returns 0 if timestamp older than first checkpoint', async function () {
@@ -193,7 +193,7 @@ describe('Supernova', function () {
 
             const ts = await helpers.getLatestBlockTimestamp();
 
-            expect(await supernova.xyzStakedAtTs(ts - 1)).to.be.equal(0);
+            expect(await supernova.entrStakedAtTs(ts - 1)).to.be.equal(0);
         });
 
         it('returns correct balance if timestamp newer than latest checkpoint', async function () {
@@ -202,7 +202,7 @@ describe('Supernova', function () {
 
             const ts = await helpers.getLatestBlockTimestamp();
 
-            expect(await supernova.xyzStakedAtTs(ts + 1)).to.be.equal(amount);
+            expect(await supernova.entrStakedAtTs(ts + 1)).to.be.equal(amount);
         });
 
         it('returns correct balance if timestamp between checkpoints', async function () {
@@ -214,12 +214,12 @@ describe('Supernova', function () {
             await helpers.moveAtTimestamp(ts + 30);
             await supernova.connect(user).deposit(amount);
 
-            expect(await supernova.xyzStakedAtTs(ts + 15)).to.be.equal(amount);
+            expect(await supernova.entrStakedAtTs(ts + 15)).to.be.equal(amount);
 
             await helpers.moveAtTimestamp(ts + 60);
             await supernova.connect(user).deposit(amount);
 
-            expect(await supernova.xyzStakedAtTs(ts + 45)).to.be.equal(amount.mul(2));
+            expect(await supernova.entrStakedAtTs(ts + 45)).to.be.equal(amount.mul(2));
         });
     });
 
@@ -265,22 +265,22 @@ describe('Supernova', function () {
             await prepareAccount(user, amount.mul(2));
             await supernova.connect(user).deposit(amount.mul(2));
 
-            expect(await xyz.balanceOf(supernova.address)).to.be.equal(amount.mul(2));
+            expect(await entr.balanceOf(supernova.address)).to.be.equal(amount.mul(2));
 
             await supernova.connect(user).withdraw(amount);
 
-            expect(await xyz.transferCalled()).to.be.true;
-            expect(await xyz.balanceOf(userAddress)).to.be.equal(amount);
-            expect(await xyz.balanceOf(supernova.address)).to.be.equal(amount);
+            expect(await entr.transferCalled()).to.be.true;
+            expect(await entr.balanceOf(userAddress)).to.be.equal(amount);
+            expect(await entr.balanceOf(supernova.address)).to.be.equal(amount);
         });
 
-        it('updates the total of xyz locked', async function () {
+        it('updates the total of entr locked', async function () {
             await prepareAccount(user, amount);
             await supernova.connect(user).deposit(amount);
-            expect(await supernova.xyzStaked()).to.be.equal(amount);
+            expect(await supernova.entrStaked()).to.be.equal(amount);
 
             await supernova.connect(user).withdraw(amount);
-            expect(await supernova.xyzStaked()).to.be.equal(0);
+            expect(await supernova.entrStaked()).to.be.equal(0);
         });
 
         it('updates the delegated user\'s voting power if user delegated his balance', async function () {
@@ -406,7 +406,7 @@ describe('Supernova', function () {
             expect(await supernova.votingPower(userAddress)).to.be.equal(amount);
         });
 
-        it('returns adjusted balance if user locked xyz', async function () {
+        it('returns adjusted balance if user locked entr', async function () {
             await prepareAccount(user, amount);
             await supernova.connect(user).deposit(amount);
 
@@ -586,9 +586,9 @@ describe('Supernova', function () {
         });
 
         it('works with multiple calls in the same block', async function () {
-            const multicall = (await deploy.deployContract('MulticallMock', [supernova.address, xyz.address])) as MulticallMock;
+            const multicall = (await deploy.deployContract('MulticallMock', [supernova.address, entr.address])) as MulticallMock;
 
-            await xyz.mint(multicall.address, amount);
+            await entr.mint(multicall.address, amount);
 
             await multicall.multiDelegate(amount, userAddress, happyPirateAddress);
 
@@ -748,8 +748,8 @@ describe('Supernova', function () {
     }
 
     async function prepareAccount (account: Signer, balance: BigNumber) {
-        await xyz.mint(await account.getAddress(), balance);
-        await xyz.connect(account).approve(supernova.address, balance);
+        await entr.mint(await account.getAddress(), balance);
+        await entr.connect(account).approve(supernova.address, balance);
     }
 
     function multiplierAtTs (expiryTs: number, ts: number): BigNumber {

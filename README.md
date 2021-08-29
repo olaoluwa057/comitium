@@ -1,11 +1,11 @@
-# UniverseXYZ Supernova
+# EnterDao Supernova
 
-Implements continuous rewards for staking XYZ in the DAO. Implements logic for determining DAO voting power based upon amount of XYZ deposited (which becomes vXYZ) plus a multiplier (up to 2x) awarded to those who lock their XYZ in the DAO for a specified period (up to 1 year). Those that lock their vXYZ for 1 year receive a 2x multiplier; those that lock their vXYZ for 6 months receive a 1.5x multiplier, and so on. Also allows users to delegate their vXYZ voting power to a secondary wallet address.
-**NOTE:** The vXYZ multiplier ONLY affects voting power; it does NOT affect rewards. All users who stake XYZ receive the same reward rate regardless of the amount of time they have locked or not locked.
+Implements continuous rewards for staking ENTR in the DAO. Implements logic for determining DAO voting power based upon amount of ENTR deposited (which becomes vENTR) plus a multiplier (up to 2x) awarded to those who lock their ENTR in the DAO for a specified period (up to 1 year). Those that lock their vENTR for 1 year receive a 2x multiplier; those that lock their vENTR for 6 months receive a 1.5x multiplier, and so on. Also allows users to delegate their vENTR voting power to a secondary wallet address.
+**NOTE:** The vENTR multiplier ONLY affects voting power; it does NOT affect rewards. All users who stake ENTR receive the same reward rate regardless of the amount of time they have locked or not locked.
 
 ##  Contracts
 ### Supernova.sol
-Allows users to deposit XYZ into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vXYZ voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/UniverseXYZ/XYZ-Supernova/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/UniverseXYZ/XYZ-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vXYZ) a wallet address has for use in voting on or creating DAO proposals.
+Allows users to deposit ENTR into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vENTR voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/UniverseXYZ/XYZ-Supernova/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/UniverseXYZ/XYZ-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vENTR) a wallet address has for use in voting on or creating DAO proposals.
 #### Actions
 - deposit
 - withdraw
@@ -13,11 +13,11 @@ Allows users to deposit XYZ into the DAO, withdraw it, lock for a time period to
 - delegate
 
 ### Rewards.sol
-Rewards users who stake their XYZ on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/UniverseXYZ/XYZ-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the XYZ rewards. The `Supernova` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
+Rewards users who stake their ENTR on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/UniverseXYZ/XYZ-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the ENTR rewards. The `Supernova` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
 #### How it works
 1. every time the `acKFunds` function detects a balance change, the multiplier is recalculated by the following formula:
 ```
-newMultiplier = oldMultiplier + amountAdded / totalXYZStaked
+newMultiplier = oldMultiplier + amountAdded / totalENTRStaked
 ```
 2. whenever a user action is registered (either by automatic calls from the hook or by user action (claim)), we calculate the amount owed to the user by the following formula:
 ```
@@ -25,12 +25,12 @@ newOwed = currentlyOwed + userBalance * (currentMultiplier - oldUserMultiplier)
 
 where:
 - oldUserMultiplier is the multiplier at the time of last user action
-- userBalance = supernova.balanceOf(user) -- the amount of $XYZ staked into the Supernova
+- userBalance = supernova.balanceOf(user) -- the amount of $ENTR staked into the Supernova
 ```
 3. update the oldUserMultiplier with the current multiplier -- signaling that we already calculated how much was owed to the user since his last action
 
 ## Smart Contract Architecture
-UniverseXYZ Supernova is a fork of BarnBridge Barn. It shares the same architecture:
+EnterDao Supernova is a fork of BarnBridge Barn. It shares the same architecture:
 
 ![dao sc architecture](https://user-images.githubusercontent.com/4047772/120464398-8c8cf400-c3a5-11eb-8cb8-a105eeaaa9e9.png)
 
@@ -38,30 +38,30 @@ UniverseXYZ Supernova is a fork of BarnBridge Barn. It shares the same architect
 Check out more detailed smart contract Slither graphs with all the dependencies: [BarnBridge-Barn Slither Graphs](https://github.com/BarnBridge/sc-graphs/tree/main/BarnBridge-Barn).
 
 ### Specs
-- user can stake XYZ for vXYZ
-    - user can lock XYZ for a period up to 1 year and he gets a bonus of vXYZ
+- user can stake ENTR for vENTR
+    - user can lock ENTR for a period up to 1 year and he gets a bonus of vENTR
         - bonus is linear, max 1 year, max 2x multiplier
             - example:
-                - lock 1000 XYZ for 1 year → get back 2000 vXYZ
-                - lock 1000 XYZ for 6 months → get back 1500 vXYZ
+                - lock 1000 ENTR for 1 year → get back 2000 vENTR
+                - lock 1000 ENTR for 6 months → get back 1500 vENTR
         - bonus has a linear decay relative to locking duration
-            - example: lock 1000 XYZ for 1 year, get back 2000 vXYZ at T0 → after 6 months, balance is 1500 vXYZ → after 9 months, balance is 1250 vXYZ
-        - user can only withdraw their XYZ balance after lock expires
-    - user can keep XYZ unlocked and no bonus is applied, vXYZ balance = XYZ balance
-- user can stake more XYZ
-    - no lock → just get back the same amount of vXYZ
+            - example: lock 1000 ENTR for 1 year, get back 2000 vENTR at T0 → after 6 months, balance is 1500 vENTR → after 9 months, balance is 1250 vENTR
+        - user can only withdraw their ENTR balance after lock expires
+    - user can keep ENTR unlocked and no bonus is applied, vENTR balance = ENTR balance
+- user can stake more ENTR
+    - no lock → just get back the same amount of vENTR
     - lock
         - lock period stays the same
-            - base balance is increased with the added XYZ
+            - base balance is increased with the added ENTR
             - multiplier stays the same
         - lock period is extended
-            - base balance is increased with the added XYZ
+            - base balance is increased with the added ENTR
                 - multiplier is recalculated relative to the new lock expiration date
-- user can delegate vXYZ to another user
+- user can delegate vENTR to another user
     - there can be only one delegatee at a time
     - only actual balance can be delegated, not the bonus
     - delegated balance cannot be locked
-    - user can take back the delegated vXYZs at any time
+    - user can take back the delegated vENTRs at any time
 
 
 
@@ -71,7 +71,7 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     # Restart terminal and/or run commands given at the end of the installation script
     nvm install 12
     nvm use 12
-### Use Git to pull down the UniverseXYZ Supernova repository from GitHub
+### Use Git to pull down the EnterDao Supernova repository from GitHub
     git clone git@github.com:UniverseXYZ/XYZ-Supernova.git
     cd XYZ-Supernova
 ### Create config.ts using the sample template config.sample.ts
@@ -153,7 +153,7 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     npm run coverage
 
 ## Audits
-UniverseXYZ Supernova is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
+EnterDao Supernova is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
 
 - [QuantStamp](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Quanstamp.pdf)
 - [Haechi](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Haechi.pdf)
@@ -174,4 +174,4 @@ Rewards deployed at: 0xF306Ad6a3E2aBd5CFD6687A2C86998f1d9c31205
 ## Discussion
 For any concerns with the platform, open an issue on GitHub.
 
-Copyright 2021 UniverseXYZ DAO
+Copyright 2021 EnterDao

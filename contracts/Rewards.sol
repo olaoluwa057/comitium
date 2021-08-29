@@ -84,15 +84,15 @@ contract Rewards is Ownable {
             return;
         }
 
-        uint256 totalStakedXyz = supernova.xyzStaked();
-        // if there's no xyz staked, it doesn't make sense to ackFunds because there's nobody to distribute them to
+        uint256 totalStakedEntr = supernova.entrStaked();
+        // if there's no entr staked, it doesn't make sense to ackFunds because there's nobody to distribute them to
         // and the calculation would fail anyways due to division by 0
-        if (totalStakedXyz == 0) {
+        if (totalStakedEntr == 0) {
             return;
         }
 
         uint256 diff = balanceNow.sub(balanceBefore);
-        uint256 multiplier = currentMultiplier.add(diff.mul(decimals).div(totalStakedXyz));
+        uint256 multiplier = currentMultiplier.add(diff.mul(decimals).div(totalStakedEntr));
 
         balanceBefore = balanceNow;
         currentMultiplier = multiplier;
@@ -131,7 +131,7 @@ contract Rewards is Ownable {
         }
     }
 
-    // setSupernova sets the address of the UniversXYZ Supernova into the state variable
+    // setSupernova sets the address of the EnterDao Supernova into the state variable
     function setSupernova(address _supernova) public {
         require(_supernova != address(0), 'supernova address must not be 0x0');
         require(msg.sender == owner(), '!owner');
