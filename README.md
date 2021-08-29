@@ -72,8 +72,8 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     nvm install 12
     nvm use 12
 ### Use Git to pull down the EnterDao Kernel repository from GitHub
-    git clone git@github.com:UniverseXYZ/XYZ-Supernova.git
-    cd XYZ-Supernova
+    git clone git@github.com:EnterDAO/ENTER-Kernel.git
+    cd ENTER-Kernel
 ### Create config.ts using the sample template config.sample.ts
     cp config.sample.ts config.ts
 
