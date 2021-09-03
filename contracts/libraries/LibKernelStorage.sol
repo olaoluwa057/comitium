@@ -5,8 +5,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IRewards.sol";
 
-library LibSupernovaStorage {
-    bytes32 constant STORAGE_POSITION = keccak256("com.xyzdao.supernova.storage");
+library LibKernelStorage {
+    bytes32 constant STORAGE_POSITION = keccak256("com.enterdao.kernel.storage");
 
     struct Checkpoint {
         uint256 timestamp;
@@ -27,19 +27,19 @@ library LibSupernovaStorage {
         // every user action creates a new object in the history
         mapping(address => Stake[]) userStakeHistory;
 
-        // array of xyz staked Checkpoint
+        // array of entr staked Checkpoint
         // deposits/withdrawals create a new object in the history (max one per block)
-        Checkpoint[] xyzStakedHistory;
+        Checkpoint[] entrStakedHistory;
 
         // mapping of user address to history of delegated power
         // every delegate/stopDelegate call create a new checkpoint (max one per block)
         mapping(address => Checkpoint[]) delegatedPowerHistory;
 
-        IERC20 xyz;
+        IERC20 entr;
         IRewards rewards;
     }
 
-    function supernovaStorage() internal pure returns (Storage storage ds) {
+    function kernelStorage() internal pure returns (Storage storage ds) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             ds.slot := position

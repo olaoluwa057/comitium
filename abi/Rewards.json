@@ -13,7 +13,7 @@
       },
       {
         "internalType": "address",
-        "name": "_supernova",
+        "name": "_kernel",
         "type": "address"
       }
     ],
@@ -112,6 +112,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "kernel",
+    "outputs": [
+      {
+        "internalType": "contract IKernel",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -232,11 +245,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_supernova",
+        "name": "_kernel",
         "type": "address"
       }
     ],
-    "name": "setSupernova",
+    "name": "setKernel",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -267,19 +280,6 @@
     "name": "setupPullToken",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "supernova",
-    "outputs": [
-      {
-        "internalType": "contract ISupernova",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

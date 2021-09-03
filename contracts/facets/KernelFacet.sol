@@ -2,13 +2,13 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ISupernova.sol";
-import "../libraries/LibSupernovaStorage.sol";
+import "../interfaces/IKernel.sol";
+import "../libraries/LibKernelStorage.sol";
 import "../libraries/LibOwnership.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract SupernovaFacet {
+contract KernelFacet {
     using SafeMath for uint256;
 
     uint256 constant public MAX_LOCK = 365 days;
@@ -21,26 +21,26 @@ contract SupernovaFacet {
     event DelegatedPowerIncreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
     event DelegatedPowerDecreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
 
-    function initSupernova(address _xyz, address _rewards) public {
-        require(_xyz != address(0), "XYZ address must not be 0x0");
+    function initKernel(address _entr, address _rewards) public {
+        require(_entr != address(0), "ENTR address must not be 0x0");
 
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
 
-        require(!ds.initialized, "Supernova: already initialized");
+        require(!ds.initialized, "Kernel: already initialized");
         LibOwnership.enforceIsContractOwner();
 
         ds.initialized = true;
 
-        ds.xyz = IERC20(_xyz);
+        ds.entr = IERC20(_entr);
         ds.rewards = IRewards(_rewards);
     }
 
-    // deposit allows a user to add more xyz to his staked balance
+    // deposit allows a user to add more entr to his staked balance
     function deposit(uint256 amount) public {
         require(amount > 0, "Amount must be greater than 0");
 
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
-        uint256 allowance = ds.xyz.allowance(msg.sender, address(this));
+       LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        uint256 allowance = ds.entr.allowance(msg.sender, address(this));
         require(allowance >= amount, "Token allowance too small");
 
         // this must be called before the user's balance is updated so the rewards contract can calculate
@@ -51,7 +51,7 @@ contract SupernovaFacet {
 
         uint256 newBalance = balanceOf(msg.sender).add(amount);
         _updateUserBalance(ds.userStakeHistory[msg.sender], newBalance);
-        _updateLockedXyz(xyzStakedAtTs(block.timestamp).add(amount));
+        _updateLockedEntr(entrStakedAtTs(block.timestamp).add(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -60,8 +60,7 @@ contract SupernovaFacet {
 
             emit DelegatedPowerIncreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
-
-        ds.xyz.transferFrom(msg.sender, address(this), amount);
+        ds.entr.transferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, amount, newBalance);
     }
@@ -74,7 +73,7 @@ contract SupernovaFacet {
         uint256 balance = balanceOf(msg.sender);
         require(balance >= amount, "Insufficient balance");
 
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
 
         // this must be called before the user's balance is updated so the rewards contract can calculate
         // the amount owed correctly
@@ -83,7 +82,7 @@ contract SupernovaFacet {
         }
 
         _updateUserBalance(ds.userStakeHistory[msg.sender], balance.sub(amount));
-        _updateLockedXyz(xyzStakedAtTs(block.timestamp).sub(amount));
+        _updateLockedEntr(entrStakedAtTs(block.timestamp).sub(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -93,7 +92,7 @@ contract SupernovaFacet {
             emit DelegatedPowerDecreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
 
-        ds.xyz.transfer(msg.sender, amount);
+        ds.entr.transfer(msg.sender, amount);
 
         emit Withdraw(msg.sender, amount, balance.sub(amount));
     }
@@ -104,9 +103,9 @@ contract SupernovaFacet {
         require(timestamp <= block.timestamp + MAX_LOCK, "Timestamp too big");
         require(balanceOf(msg.sender) > 0, "Sender has no balance");
 
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
-        LibSupernovaStorage.Stake[] storage checkpoints = ds.userStakeHistory[msg.sender];
-        LibSupernovaStorage.Stake storage currentStake = checkpoints[checkpoints.length - 1];
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibKernelStorage.Stake[] storage checkpoints = ds.userStakeHistory[msg.sender];
+        LibKernelStorage.Stake storage currentStake = checkpoints[checkpoints.length - 1];
 
         require(timestamp > currentStake.expiryTimestamp, "New timestamp lower than current lock timestamp");
 
@@ -127,7 +126,7 @@ contract SupernovaFacet {
         uint256 senderBalance = balanceOf(msg.sender);
         require(senderBalance > 0, "No balance to delegate");
 
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
 
         emit Delegate(msg.sender, to);
 
@@ -154,25 +153,25 @@ contract SupernovaFacet {
         return delegate(address(0));
     }
 
-    // balanceOf returns the current XYZ balance of a user (bonus not included)
+    // balanceOf returns the current ENTR balance of a user (bonus not included)
     function balanceOf(address user) public view returns (uint256) {
         return balanceAtTs(user, block.timestamp);
     }
 
-    // balanceAtTs returns the amount of XYZ that the user currently staked (bonus NOT included)
+    // balanceAtTs returns the amount of ENTR that the user currently staked (bonus NOT included)
     function balanceAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibSupernovaStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         return stake.amount;
     }
 
     // stakeAtTs returns the Stake object of the user that was valid at `timestamp`
-    function stakeAtTs(address user, uint256 timestamp) public view returns (LibSupernovaStorage.Stake memory) {
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
-        LibSupernovaStorage.Stake[] storage stakeHistory = ds.userStakeHistory[user];
+    function stakeAtTs(address user, uint256 timestamp) public view returns (LibKernelStorage.Stake memory) {
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibKernelStorage.Stake[] storage stakeHistory = ds.userStakeHistory[user];
 
         if (stakeHistory.length == 0 || timestamp < stakeHistory[0].timestamp) {
-            return LibSupernovaStorage.Stake(block.timestamp, 0, block.timestamp, address(0));
+            return LibKernelStorage.Stake(block.timestamp, 0, block.timestamp, address(0));
         }
 
         uint256 min = 0;
@@ -202,7 +201,7 @@ contract SupernovaFacet {
 
     // votingPowerAtTs returns the voting power (bonus included) + delegated voting power for a user at a point in time
     function votingPowerAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibSupernovaStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         uint256 ownVotingPower;
 
@@ -220,15 +219,15 @@ contract SupernovaFacet {
         return ownVotingPower.add(delegatedVotingPower);
     }
 
-    // xyzStaked returns the total raw amount of XYZ staked at the current block
-    function xyzStaked() public view returns (uint256) {
-        return xyzStakedAtTs(block.timestamp);
+    // entrStaked returns the total raw amount of ENTR staked at the current block
+    function entrStaked() public view returns (uint256) {
+        return entrStakedAtTs(block.timestamp);
     }
 
-    // xyzStakedAtTs returns the total raw amount of XYZ users have deposited into the contract
+    // entrStakedAtTs returns the total raw amount of ENTR users have deposited into the contract
     // it does not include any bonus
-    function xyzStakedAtTs(uint256 timestamp) public view returns (uint256) {
-        return _checkpointsBinarySearch(LibSupernovaStorage.supernovaStorage().xyzStakedHistory, timestamp);
+    function entrStakedAtTs(uint256 timestamp) public view returns (uint256) {
+        return _checkpointsBinarySearch(LibKernelStorage.kernelStorage().entrStakedHistory, timestamp);
     }
 
     // delegatedPower returns the total voting power that a user received from other users
@@ -238,7 +237,7 @@ contract SupernovaFacet {
 
     // delegatedPowerAtTs returns the total voting power that a user received from other users at a point in time
     function delegatedPowerAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        return _checkpointsBinarySearch(LibSupernovaStorage.supernovaStorage().delegatedPowerHistory[user], timestamp);
+        return _checkpointsBinarySearch(LibKernelStorage.kernelStorage().delegatedPowerHistory[user], timestamp);
     }
 
     // same as multiplierAtTs but for the current block timestamp
@@ -249,28 +248,28 @@ contract SupernovaFacet {
     // multiplierAtTs calculates the multiplier at a given timestamp based on the user's stake a the given timestamp
     // it includes the decay mechanism
     function multiplierAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibSupernovaStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         return _stakeMultiplier(stake, timestamp);
     }
 
     // userLockedUntil returns the timestamp until the user's balance is locked
     function userLockedUntil(address user) public view returns (uint256) {
-        LibSupernovaStorage.Stake memory c = stakeAtTs(user, block.timestamp);
+        LibKernelStorage.Stake memory c = stakeAtTs(user, block.timestamp);
 
         return c.expiryTimestamp;
     }
 
     // userDelegatedTo returns the address to which a user delegated their voting power; address(0) if not delegated
     function userDelegatedTo(address user) public view returns (address) {
-        LibSupernovaStorage.Stake memory c = stakeAtTs(user, block.timestamp);
+        LibKernelStorage.Stake memory c = stakeAtTs(user, block.timestamp);
 
         return c.delegatedTo;
     }
 
     // _checkpointsBinarySearch executes a binary search on a list of checkpoints that's sorted chronologically
     // looking for the closest checkpoint that matches the specified timestamp
-    function _checkpointsBinarySearch(LibSupernovaStorage.Checkpoint[] storage checkpoints, uint256 timestamp) internal view returns (uint256) {
+    function _checkpointsBinarySearch(LibKernelStorage.Checkpoint[] storage checkpoints, uint256 timestamp) internal view returns (uint256) {
         if (checkpoints.length == 0 || timestamp < checkpoints[0].timestamp) {
             return 0;
         }
@@ -296,7 +295,7 @@ contract SupernovaFacet {
     }
 
     // _stakeMultiplier calculates the multiplier for the given stake at the given timestamp
-    function _stakeMultiplier(LibSupernovaStorage.Stake memory stake, uint256 timestamp) internal view returns (uint256) {
+    function _stakeMultiplier(LibKernelStorage.Stake memory stake, uint256 timestamp) internal view returns (uint256) {
         if (timestamp >= stake.expiryTimestamp) {
             return BASE_MULTIPLIER;
         }
@@ -312,16 +311,16 @@ contract SupernovaFacet {
     // _updateUserBalance manages an array of checkpoints
     // if there's already a checkpoint for the same timestamp, the amount is updated
     // otherwise, a new checkpoint is inserted
-    function _updateUserBalance(LibSupernovaStorage.Stake[] storage checkpoints, uint256 amount) internal {
+    function _updateUserBalance(LibKernelStorage.Stake[] storage checkpoints, uint256 amount) internal {
         if (checkpoints.length == 0) {
-            checkpoints.push(LibSupernovaStorage.Stake(block.timestamp, amount, block.timestamp, address(0)));
+            checkpoints.push(LibKernelStorage.Stake(block.timestamp, amount, block.timestamp, address(0)));
         } else {
-            LibSupernovaStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+            LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
             if (old.timestamp == block.timestamp) {
                 old.amount = amount;
             } else {
-                checkpoints.push(LibSupernovaStorage.Stake(block.timestamp, amount, old.expiryTimestamp, old.delegatedTo));
+                checkpoints.push(LibKernelStorage.Stake(block.timestamp, amount, old.expiryTimestamp, old.delegatedTo));
             }
         }
     }
@@ -329,11 +328,11 @@ contract SupernovaFacet {
     // _updateUserLock updates the expiry timestamp on the user's stake
     // it assumes that if the user already has a balance, which is checked for in the lock function
     // then there must be at least 1 checkpoint
-    function _updateUserLock(LibSupernovaStorage.Stake[] storage checkpoints, uint256 expiryTimestamp) internal {
-        LibSupernovaStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+    function _updateUserLock(LibKernelStorage.Stake[] storage checkpoints, uint256 expiryTimestamp) internal {
+        LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
         if (old.timestamp < block.timestamp) {
-            checkpoints.push(LibSupernovaStorage.Stake(block.timestamp, old.amount, expiryTimestamp, old.delegatedTo));
+            checkpoints.push(LibKernelStorage.Stake(block.timestamp, old.amount, expiryTimestamp, old.delegatedTo));
         } else {
             old.expiryTimestamp = expiryTimestamp;
         }
@@ -342,34 +341,34 @@ contract SupernovaFacet {
     // _updateUserDelegatedTo updates the delegateTo property on the user's stake
     // it assumes that if the user already has a balance, which is checked for in the delegate function
     // then there must be at least 1 checkpoint
-    function _updateUserDelegatedTo(LibSupernovaStorage.Stake[] storage checkpoints, address to) internal {
-        LibSupernovaStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+    function _updateUserDelegatedTo(LibKernelStorage.Stake[] storage checkpoints, address to) internal {
+        LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
         if (old.timestamp < block.timestamp) {
-            checkpoints.push(LibSupernovaStorage.Stake(block.timestamp, old.amount, old.expiryTimestamp, to));
+            checkpoints.push(LibKernelStorage.Stake(block.timestamp, old.amount, old.expiryTimestamp, to));
         } else {
             old.delegatedTo = to;
         }
     }
 
     // _updateDelegatedPower updates the power delegated TO the user in the checkpoints history
-    function _updateDelegatedPower(LibSupernovaStorage.Checkpoint[] storage checkpoints, uint256 amount) internal {
+    function _updateDelegatedPower(LibKernelStorage.Checkpoint[] storage checkpoints, uint256 amount) internal {
         if (checkpoints.length == 0 || checkpoints[checkpoints.length - 1].timestamp < block.timestamp) {
-            checkpoints.push(LibSupernovaStorage.Checkpoint(block.timestamp, amount));
+            checkpoints.push(LibKernelStorage.Checkpoint(block.timestamp, amount));
         } else {
-            LibSupernovaStorage.Checkpoint storage old = checkpoints[checkpoints.length - 1];
+            LibKernelStorage.Checkpoint storage old = checkpoints[checkpoints.length - 1];
             old.amount = amount;
         }
     }
 
-    // _updateLockedXyz stores the new `amount` into the XYZ locked history
-    function _updateLockedXyz(uint256 amount) internal {
-        LibSupernovaStorage.Storage storage ds = LibSupernovaStorage.supernovaStorage();
+    // _updateLockedEntr stores the new `amount` into the ENTR locked history
+    function _updateLockedEntr(uint256 amount) internal {
+        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
 
-        if (ds.xyzStakedHistory.length == 0 || ds.xyzStakedHistory[ds.xyzStakedHistory.length - 1].timestamp < block.timestamp) {
-            ds.xyzStakedHistory.push(LibSupernovaStorage.Checkpoint(block.timestamp, amount));
+        if (ds.entrStakedHistory.length == 0 || ds.entrStakedHistory[ds.entrStakedHistory.length - 1].timestamp < block.timestamp) {
+            ds.entrStakedHistory.push(LibKernelStorage.Checkpoint(block.timestamp, amount));
         } else {
-            LibSupernovaStorage.Checkpoint storage old = ds.xyzStakedHistory[ds.xyzStakedHistory.length - 1];
+            LibKernelStorage.Checkpoint storage old = ds.entrStakedHistory[ds.entrStakedHistory.length - 1];
             old.amount = amount;
         }
     }

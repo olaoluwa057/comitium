@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import * as deploy from './helpers/deploy';
+import * as deploy from '../utils/deploy';
 import { Contract, Signer } from 'ethers';
-import { diamondAsFacet, FacetCutAction, getSelectors } from './helpers/diamond';
+import { diamondAsFacet, FacetCutAction, getSelectors } from '../utils/diamond';
 import { DiamondCutFacet, DiamondLoupeFacet, OwnershipFacet, Test1Facet, Test2Facet } from '../typechain';
-import { zeroAddress } from './helpers/helpers';
+import { zeroAddress } from '../utils/helpers';
 
 describe('Diamond', function () {
     let loupeFacet: Contract, cutFacet: Contract, ownershipFacet: Contract;
@@ -20,7 +20,7 @@ describe('Diamond', function () {
         loupeFacet = await deploy.deployContract('DiamondLoupeFacet');
         ownershipFacet = await deploy.deployContract('OwnershipFacet');
         diamond = await deploy.deployDiamond(
-            'Supernova',
+            'Kernel',
             [cutFacet, loupeFacet, ownershipFacet],
             await owner.getAddress(),
         );

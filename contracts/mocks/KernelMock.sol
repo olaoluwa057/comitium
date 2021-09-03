@@ -3,9 +3,9 @@ pragma solidity 0.7.6;
 
 import "../interfaces/IRewards.sol";
 
-contract SupernovaMock {
+contract KernelMock {
     IRewards public r;
-    uint256 public xyzStaked;
+    uint256 public entrStaked;
     mapping(address => uint256) private balances;
 
     function setRewards(address rewards) public {
@@ -20,7 +20,7 @@ contract SupernovaMock {
         callRegisterUserAction(user);
 
         balances[user] = balances[user] + amount;
-        xyzStaked = xyzStaked + amount;
+        entrStaked = entrStaked + amount;
     }
 
     function withdraw(address user, uint256 amount) public {
@@ -29,7 +29,7 @@ contract SupernovaMock {
         callRegisterUserAction(user);
 
         balances[user] = balances[user] - amount;
-        xyzStaked = xyzStaked - amount;
+        entrStaked = entrStaked - amount;
     }
 
     function balanceOf(address user) public view returns (uint256) {
