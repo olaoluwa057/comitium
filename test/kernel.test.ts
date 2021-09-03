@@ -1,12 +1,12 @@
 import { ethers } from 'hardhat';
 import { BigNumber, Signer } from 'ethers';
-import * as helpers from './helpers/helpers';
+import * as helpers from '../utils/helpers';
 import { expect } from 'chai';
 import { KernelFacet, Erc20Mock, RewardsMock, MulticallMock, ChangeRewardsFacet } from '../typechain';
-import * as time from './helpers/time';
-import * as deploy from './helpers/deploy';
-import { diamondAsFacet } from './helpers/diamond';
-import { moveAtTimestamp } from './helpers/helpers';
+import * as time from '../utils/time';
+import * as deploy from '../utils/deploy';
+import { diamondAsFacet } from '../utils/diamond';
+import { moveAtTimestamp } from '../utils/helpers';
 
 describe('Kernel', function () {
     const amount = BigNumber.from(100).mul(BigNumber.from(10).pow(18));

@@ -7,15 +7,21 @@ import 'hardhat-typechain';
 import 'solidity-coverage';
 import 'hardhat-gas-reporter';
 
-// This is a sample Buidler task. To learn how to create your own go to
-// https://buidler.dev/guides/create-task.html
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
-    const accounts = await hre.ethers.getSigners();
-
-    for (const account of accounts) {
-        console.log(await account.getAddress());
-    }
-});
+task('deploy', 'Deploys the Kernel Diamond with all of its facets')
+    .addParam('entr', 'The ENTR token address')
+    .addParam('cv', 'The community vault address')
+    .addParam('start', 'The Start timestamp of the rewards')
+    .addParam('end', 'The End timestamp of the rewards')
+    .addParam('rewardsAmount', 'The reward amount')
+    .setAction(async (args) => {
+        const deployKernel = require('./scripts/deploy');
+        await deployKernel(
+            args.entr,
+            args.cv,
+            args.start,
+            args.end,
+            args.rewardsAmount);
+    });
 
 // Some of the settings should be defined in `./config.js`.
 // Go to https://hardhat.org/config/ for the syntax.

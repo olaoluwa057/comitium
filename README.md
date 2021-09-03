@@ -160,29 +160,26 @@ EnterDao Kernel is a fork of BarnBridge Barn. Here you can find the audits for t
 
 ## Deployment
 
-Steps for deploying the Kernel:
-1. Set the `OWNER` of the Kernel in `./scripts/kernel-deployment.ts`
-2. Set the `ENTR` token address in  `./scripts/kernel-deployment.ts`
-By default the script **will not set the pull token** in `Rewards.sol`
-3. Execute:
+- Deploys all the facets
+- Deploys the Kernel Diamond with all the facets as diamond cuts
+- Deploys the Rewards contract
+- Configures the Pull Token
+- Verifies all contracts at Etherscan
 ```
-npx hardhat run --network {NETWORK} ./scripts/kernel-deployment.ts 
-```
-4. Verify the contracts:
-```
-npx hardhat verify --network {NETWORK} {CONTRACT_ADDRESS} {ARGUMENTS}
-```
-**Note**
-In order to verify the Diamond, you will need to extract the Faucets. Use the `diamond-arguments-etherescan.ts` script to extract them. Once you have them you can execute:
-```
-npx hardhat verify --network rinkeby --constructor-args ./scripts/rinkeby-diamond-arguments-etherscan.ts {DIAMOND_ADDRESS}
+npx hardhat deploy \
+    --network <network name> \ 
+    --entr <ENTR token> \
+    --cv <community vault address> \
+    --start <start timestamp for rewards> \
+    --end <end timestamp for rewards> \
+    --rewards-amount <rewards amount> \
 ```
 
 ### Mainnet
 ```shell
-DiamondCutFacet deployed to: 
+DiamondCutFacet deployed to:
 DiamondLoupeFacet deployed to:
-OwnershipFacet deployed to: 
+OwnershipFacet deployed to:
 ChangeRewardsFacet deployed to:
 KernelFacet deployed at:
 -----
@@ -204,5 +201,3 @@ Rewards deployed at: 0x9778409eF13D797F9218dC71bcfc368976D47B5d
 
 ## Discussion
 For any concerns with the platform, open an issue on GitHub.
-
-Copyright 2021 EnterDao

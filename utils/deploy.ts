@@ -11,6 +11,15 @@ export async function deployContract (name: string, args?: Array<any>): Promise<
 }
 
 export async function deployDiamond (diamondArtifactName: string, facets: Array<Contract>, owner: string): Promise<Contract> {
+    const diamondCut = getDiamondCut(facets);
+    const diamondFactory: ContractFactory = await ethers.getContractFactory(diamondArtifactName);
+    const deployedDiamond: Contract = await diamondFactory.deploy(diamondCut, owner);
+    await deployedDiamond.deployed();
+
+    return deployedDiamond;
+}
+
+export function getDiamondCut (facets: Array<Contract>) {
     const diamondCut = [];
 
     for (const facet of facets) {
@@ -20,11 +29,6 @@ export async function deployDiamond (diamondArtifactName: string, facets: Array<
             diamond.getSelectors(facet),
         ]);
     }
-
-    const diamondFactory: ContractFactory = await ethers.getContractFactory(diamondArtifactName);
-    const deployedDiamond: Contract = await diamondFactory.deploy(diamondCut, owner);
-    await deployedDiamond.deployed();
-
-    return deployedDiamond;
+    return diamondCut;
 }
 

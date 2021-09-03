@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat';
 import { BigNumber, Signer } from 'ethers';
-import * as helpers from './helpers/helpers';
-import * as time from './helpers/time';
+import * as helpers from '../utils/helpers';
+import * as time from '../utils/time';
 import { expect } from 'chai';
 import { KernelMock, Erc20Mock, Rewards } from '../typechain';
-import * as deploy from './helpers/deploy';
+import * as deploy from '../utils/deploy';
 
 describe('Rewards', function () {
     const amount = BigNumber.from(100).mul(BigNumber.from(10).pow(18));
