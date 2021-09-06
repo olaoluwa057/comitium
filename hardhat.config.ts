@@ -11,7 +11,7 @@ task('deploy', 'Deploys the Kernel Diamond with all of its facets')
     .addParam('entr', 'The ENTR token address')
     .addParam('cv', 'The community vault address')
     .addParam('start', 'The Start timestamp of the rewards')
-    .addParam('end', 'The End timestamp of the rewards')
+    .addParam('days', 'The number of days the rewards should run')
     .addParam('rewardsAmount', 'The reward amount')
     .setAction(async (args) => {
         const deployKernel = require('./scripts/deploy');
@@ -19,7 +19,7 @@ task('deploy', 'Deploys the Kernel Diamond with all of its facets')
             args.entr,
             args.cv,
             args.start,
-            args.end,
+            args.days,
             args.rewardsAmount);
     });
 

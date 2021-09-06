@@ -1,10 +1,10 @@
 import hardhat from 'hardhat';
 import * as deployer from '../utils/deploy';
-import {KernelFacet, OwnershipFacet, Rewards} from "../typechain";
-import {getDiamondCut} from "../utils/deploy";
-import {diamondAsFacet} from "../utils/diamond";
+import { KernelFacet, OwnershipFacet, Rewards } from "../typechain";
+import { getDiamondCut } from "../utils/deploy";
+import { diamondAsFacet } from "../utils/diamond";
 
-async function deploy (entr: string, cv: string, start: number, end: number, rewardsAmount: string) {
+async function deploy(entr: string, cv: string, start: number, days: number, rewardsAmount: string) {
     await hardhat.run('compile');
     const deployers = await hardhat.ethers.getSigners();
     const deployerAddress = await deployers[0].getAddress();
@@ -48,7 +48,7 @@ async function deploy (entr: string, cv: string, start: number, end: number, rew
     console.log(`Rewards deployed at: ${rewards.address}`);
 
     console.log('Setup Rewards...');
-    await rewards.setupPullToken(cv, start, end, rewardsAmount);
+    await rewards.setupPullToken(cv, start, start + (60 * 60 * 24 * days), rewardsAmount);
     console.log('Rewards have been set up.');
 
     /**
