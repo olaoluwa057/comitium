@@ -4,7 +4,10 @@ import { KernelFacet, OwnershipFacet, Rewards } from "../typechain";
 import { getDiamondCut } from "../utils/deploy";
 import { diamondAsFacet } from "../utils/diamond";
 
-async function deploy(entr: string, cv: string, start: number, days: number, rewardsAmount: string) {
+async function deploy(entr: string, cv: string, sStart: string, sDays: string, rewardsAmount: string) {
+    const days = Number.parseInt(sDays);
+    const start = Number.parseInt(sStart)
+
     await hardhat.run('compile');
     const deployers = await hardhat.ethers.getSigners();
     const deployerAddress = await deployers[0].getAddress();
@@ -49,7 +52,7 @@ async function deploy(entr: string, cv: string, start: number, days: number, rew
 
     console.log('Setup Rewards...');
     await rewards.setupPullToken(cv, start, start + (60 * 60 * 24 * days), rewardsAmount);
-    console.log('Rewards have been set up.');
+    console.log(`Rewards have been set up. Go ahead and approve ${rewardsAmount} from the Community Vault`);
 
     /**
      * Initialise Kernel
