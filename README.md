@@ -177,14 +177,14 @@ npx hardhat deploy \
 
 ### Mainnet
 ```shell
-DiamondCutFacet deployed to:
-DiamondLoupeFacet deployed to:
-OwnershipFacet deployed to:
-ChangeRewardsFacet deployed to:
-KernelFacet deployed at:
+DiamondCutFacet deployed to: 0xCD98aFdc3f8B56daa318eBa929F1A865AeE7cc4f
+DiamondLoupeFacet deployed to: 0xEdf1BcC415f60989c176834E8fd5eAcbd86b9aA2
+OwnershipFacet deployed to: 0x9f34eCc82405Dc4eb220B46FA70Bfba5AfA802BF
+ChangeRewardsFacet deployed to: 0xe915D9dc6FBdEe48FDEa4F832C69Dc283588bA61
+KernelFacet deployed at: 0xa6bE5520c1d2f443E346B93330F55dC7Cfb23b9B
 -----
-Kernel deployed at:
-Rewards deployed at:
+Kernel deployed at: 0xD2c83AB0bee469ab5853c1e60bf8B663094EDca5
+Rewards deployed at: 0xe4eD7DBF867c4C3Dd24D31Dc55F4A475634a5851
 ```
 
 ### Rinkeby
