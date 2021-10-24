@@ -2,14 +2,14 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "../libraries/LibKernelStorage.sol";
+import "../libraries/LibComitiumStorage.sol";
 import "../libraries/LibOwnership.sol";
 
 contract ChangeRewardsFacet {
     function changeRewardsAddress(address _rewards) public {
         LibOwnership.enforceIsContractOwner();
 
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
         ds.rewards = IRewards(_rewards);
     }
 }

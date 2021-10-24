@@ -7,16 +7,16 @@ import 'hardhat-typechain';
 import 'solidity-coverage';
 import 'hardhat-gas-reporter';
 
-task('deploy', 'Deploys the Kernel Diamond with all of its facets')
-    .addParam('entr', 'The ENTR token address')
+task('deploy', 'Deploys the Comitium Diamond with all of its facets')
+    .addParam('fdt', 'The FDT token address')
     .addParam('cv', 'The community vault address')
     .addParam('start', 'The Start timestamp of the rewards')
     .addParam('days', 'The number of days the rewards should run')
     .addParam('rewardsAmount', 'The reward amount')
     .setAction(async (args) => {
-        const deployKernel = require('./scripts/deploy');
-        await deployKernel(
-            args.entr,
+        const deployComitium = require('./scripts/deploy');
+        await deployComitium(
+            args.fdt,
             args.cv,
             args.start,
             args.days,
@@ -42,7 +42,7 @@ const cfg: HardhatUserConfig = {
     etherscan: config.etherscan,
 
     abiExporter: {
-        only: ['Kernel', 'KernelFacet', 'OwnershipFacet', 'DiamondCutFacet', 'DiamondLoupeFacet', 'Rewards'],
+        only: ['Comitium', 'ComitiumFacet', 'OwnershipFacet', 'DiamondCutFacet', 'DiamondLoupeFacet', 'Rewards'],
         except: ['.*Mock$'],
         clear: true,
         flat: true,

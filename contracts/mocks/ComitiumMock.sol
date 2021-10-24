@@ -3,9 +3,9 @@ pragma solidity 0.7.6;
 
 import "../interfaces/IRewards.sol";
 
-contract KernelMock {
+contract ComitiumMock {
     IRewards public r;
-    uint256 public entrStaked;
+    uint256 public fdtStaked;
     mapping(address => uint256) private balances;
 
     function setRewards(address rewards) public {
@@ -20,7 +20,7 @@ contract KernelMock {
         callRegisterUserAction(user);
 
         balances[user] = balances[user] + amount;
-        entrStaked = entrStaked + amount;
+        fdtStaked = fdtStaked + amount;
     }
 
     function withdraw(address user, uint256 amount) public {
@@ -29,7 +29,7 @@ contract KernelMock {
         callRegisterUserAction(user);
 
         balances[user] = balances[user] - amount;
-        entrStaked = entrStaked - amount;
+        fdtStaked = fdtStaked - amount;
     }
 
     function balanceOf(address user) public view returns (uint256) {

@@ -5,8 +5,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IRewards.sol";
 
-library LibKernelStorage {
-    bytes32 constant STORAGE_POSITION = keccak256("com.enterdao.kernel.storage");
+library LibComitiumStorage {
+    bytes32 constant STORAGE_POSITION = keccak256("com.fiatdao.comitium.storage");
 
     struct Checkpoint {
         uint256 timestamp;
@@ -27,19 +27,19 @@ library LibKernelStorage {
         // every user action creates a new object in the history
         mapping(address => Stake[]) userStakeHistory;
 
-        // array of entr staked Checkpoint
+        // array of fdt staked Checkpoint
         // deposits/withdrawals create a new object in the history (max one per block)
-        Checkpoint[] entrStakedHistory;
+        Checkpoint[] fdtStakedHistory;
 
         // mapping of user address to history of delegated power
         // every delegate/stopDelegate call create a new checkpoint (max one per block)
         mapping(address => Checkpoint[]) delegatedPowerHistory;
 
-        IERC20 entr;
+        IERC20 fdt;
         IRewards rewards;
     }
 
-    function kernelStorage() internal pure returns (Storage storage ds) {
+    function comitiumStorage() internal pure returns (Storage storage ds) {
         bytes32 position = STORAGE_POSITION;
         assembly {
             ds.slot := position

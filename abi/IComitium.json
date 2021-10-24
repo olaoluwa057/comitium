@@ -113,7 +113,7 @@
   },
   {
     "inputs": [],
-    "name": "entrStaked",
+    "name": "fdtStaked",
     "outputs": [
       {
         "internalType": "uint256",
@@ -132,7 +132,7 @@
         "type": "uint256"
       }
     ],
-    "name": "entrStakedAtTs",
+    "name": "fdtStakedAtTs",
     "outputs": [
       {
         "internalType": "uint256",
@@ -236,7 +236,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct LibKernelStorage.Stake",
+        "internalType": "struct LibComitiumStorage.Stake",
         "name": "",
         "type": "tuple"
       }

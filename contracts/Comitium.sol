@@ -10,7 +10,7 @@ import "./libraries/LibDiamondStorage.sol";
 import "./interfaces/IERC165.sol";
 import "./interfaces/IERC173.sol";
 
-contract Kernel {
+contract Comitium {
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, address _owner) payable {
         require(_owner != address(0), "owner must not be 0x0");
 

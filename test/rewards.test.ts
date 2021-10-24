@@ -3,13 +3,13 @@ import { BigNumber, Signer } from 'ethers';
 import * as helpers from '../utils/helpers';
 import * as time from '../utils/time';
 import { expect } from 'chai';
-import { KernelMock, Erc20Mock, Rewards } from '../typechain';
+import { ComitiumMock, Erc20Mock, Rewards } from '../typechain';
 import * as deploy from '../utils/deploy';
 
 describe('Rewards', function () {
     const amount = BigNumber.from(100).mul(BigNumber.from(10).pow(18));
 
-    let kernel: KernelMock, entr: Erc20Mock, rewards: Rewards;
+    let comitium: ComitiumMock, fdt: Erc20Mock, rewards: Rewards;
 
     let user: Signer, userAddress: string;
     let happyPirate: Signer, happyPirateAddress: string;
@@ -22,19 +22,19 @@ describe('Rewards', function () {
     let snapshotTs: number;
 
     before(async function () {
-        entr = (await deploy.deployContract('ERC20Mock')) as Erc20Mock;
+        fdt = (await deploy.deployContract('ERC20Mock')) as Erc20Mock;
 
         await setupSigners();
         await setupContracts();
 
-        kernel = (await deploy.deployContract('KernelMock')) as KernelMock;
+        comitium = (await deploy.deployContract('ComitiumMock')) as ComitiumMock;
 
         rewards = (await deploy.deployContract(
             'Rewards',
-            [await treasury.getAddress(), entr.address, kernel.address])
+            [await treasury.getAddress(), fdt.address, comitium.address])
         ) as Rewards;
 
-        await kernel.setRewards(rewards.address);
+        await comitium.setRewards(rewards.address);
     });
 
     beforeEach(async function () {
@@ -122,19 +122,19 @@ describe('Rewards', function () {
             ).to.be.revertedWith('contract is disabled');
         });
 
-        it('can set kernel address if called by owner', async function () {
-            await expect(rewards.connect(happyPirate).setKernel(kernel.address))
+        it('can set comitium address if called by owner', async function () {
+            await expect(rewards.connect(happyPirate).setComitium(comitium.address))
                 .to.be.revertedWith('!owner');
 
-            await expect(rewards.connect(treasury).setKernel(flyingParrotAddress))
+            await expect(rewards.connect(treasury).setComitium(flyingParrotAddress))
                 .to.not.be.reverted;
 
-            expect(await rewards.kernel()).to.equal(flyingParrotAddress);
+            expect(await rewards.comitium()).to.equal(flyingParrotAddress);
         });
 
-        it('reverts if setKernel called with 0x0', async function () {
-            await expect(rewards.connect(treasury).setKernel(helpers.zeroAddress))
-                .to.be.revertedWith('kernel address must not be 0x0');
+        it('reverts if setComitium called with 0x0', async function () {
+            await expect(rewards.connect(treasury).setComitium(helpers.zeroAddress))
+                .to.be.revertedWith('comitium address must not be 0x0');
         });
     });
 
@@ -142,15 +142,15 @@ describe('Rewards', function () {
         it('calculates the new multiplier when funds are added', async function () {
             expect(await rewards.currentMultiplier()).to.equal(0);
 
-            await entr.mint(rewards.address, amount);
-            await kernel.deposit(happyPirateAddress, amount);
+            await fdt.mint(rewards.address, amount);
+            await comitium.deposit(happyPirateAddress, amount);
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
 
             expect(await rewards.currentMultiplier()).to.equal(helpers.tenPow18);
             expect(await rewards.balanceBefore()).to.equal(amount);
 
-            await entr.mint(rewards.address, amount);
+            await fdt.mint(rewards.address, amount);
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
             expect(await rewards.currentMultiplier()).to.equal(helpers.tenPow18.mul(2));
@@ -158,20 +158,20 @@ describe('Rewards', function () {
         });
 
         it('does not change multiplier on funds balance decrease but changes balance', async function () {
-            await entr.mint(rewards.address, amount);
-            await kernel.deposit(happyPirateAddress, amount);
+            await fdt.mint(rewards.address, amount);
+            await comitium.deposit(happyPirateAddress, amount);
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
             expect(await rewards.currentMultiplier()).to.equal(helpers.tenPow18);
             expect(await rewards.balanceBefore()).to.equal(amount);
 
-            await entr.burnFrom(rewards.address, amount.div(2));
+            await fdt.burnFrom(rewards.address, amount.div(2));
 
             await expect(rewards.ackFunds()).to.not.be.reverted;
             expect(await rewards.currentMultiplier()).to.equal(helpers.tenPow18);
             expect(await rewards.balanceBefore()).to.equal(amount.div(2));
 
-            await entr.mint(rewards.address, amount.div(2));
+            await fdt.mint(rewards.address, amount.div(2));
             await rewards.ackFunds();
 
             // 1 + 50 / 100 = 1.5
@@ -180,61 +180,61 @@ describe('Rewards', function () {
     });
 
     describe('registerUserAction', function () {
-        it('can only be called by kernel', async function () {
+        it('can only be called by comitium', async function () {
             await expect(rewards.connect(happyPirate).registerUserAction(flyingParrotAddress))
-                .to.be.revertedWith('only callable by kernel');
+                .to.be.revertedWith('only callable by comitium');
 
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
 
-            await expect(kernel.callRegisterUserAction(happyPirateAddress)).to.not.be.reverted;
+            await expect(comitium.callRegisterUserAction(happyPirateAddress)).to.not.be.reverted;
         });
 
-        it('does not pull entr if function is disabled', async function () {
-            await kernel.callRegisterUserAction(happyPirateAddress);
+        it('does not pull fdt if function is disabled', async function () {
+            await comitium.callRegisterUserAction(happyPirateAddress);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(0);
+            expect(await fdt.balanceOf(rewards.address)).to.equal(0);
 
-            await entr.connect(communityVault).approve(rewards.address, amount);
+            await fdt.connect(communityVault).approve(rewards.address, amount);
 
             const startAt = await helpers.getLatestBlockTimestamp();
             const endsAt = startAt + 60 * 60 * 24 * 7;
             await rewards.connect(treasury).setupPullToken(await communityVault.getAddress(), startAt, endsAt, amount);
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
 
             await helpers.moveAtTimestamp(startAt + time.day);
-            await kernel.callRegisterUserAction(happyPirateAddress);
+            await comitium.callRegisterUserAction(happyPirateAddress);
 
             // total time is 7 days & total amount is 100  => 1 day worth of rewards ~14.28
-            const balance = await entr.balanceOf(rewards.address);
+            const balance = await fdt.balanceOf(rewards.address);
             expect(balance.gt(BigNumber.from(14).mul(helpers.tenPow18))).to.be.true;
             expect(balance.lt(BigNumber.from(15).mul(helpers.tenPow18))).to.be.true;
         });
 
-        it('does not pull entr if already pulled everything', async function () {
+        it('does not pull fdt if already pulled everything', async function () {
             const { start, end } = await setupRewards();
 
             await helpers.moveAtTimestamp(end + 1 * time.day);
 
-            await kernel.callRegisterUserAction(happyPirateAddress);
+            await comitium.callRegisterUserAction(happyPirateAddress);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(amount);
+            expect(await fdt.balanceOf(rewards.address)).to.equal(amount);
 
             await helpers.moveAtTimestamp(end + 1 * time.day);
-            await kernel.callRegisterUserAction(happyPirateAddress);
+            await comitium.callRegisterUserAction(happyPirateAddress);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(amount);
+            expect(await fdt.balanceOf(rewards.address)).to.equal(amount);
         });
 
         it('updates the amount owed to user but does not send funds', async function () {
-            await entr.connect(communityVault).approve(rewards.address, amount);
+            await fdt.connect(communityVault).approve(rewards.address, amount);
 
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
 
             await helpers.moveAtTimestamp(defaultStartAt + time.day);
 
-            expect(await entr.balanceOf(happyPirateAddress)).to.equal(0);
+            expect(await fdt.balanceOf(happyPirateAddress)).to.equal(0);
 
-            const balance = await entr.balanceOf(rewards.address);
+            const balance = await fdt.balanceOf(rewards.address);
             expect(balance.gte(0)).to.be.true;
             expect(await rewards.owed(happyPirateAddress)).to.equal(balance);
         });
@@ -248,7 +248,7 @@ describe('Rewards', function () {
         it('transfers the amount to user', async function () {
             const { start, end } = await setupRewards();
 
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
             const depositTs = await helpers.getLatestBlockTimestamp();
 
             const expectedBalance1 = calcTotalReward(start, depositTs, end - start, amount);
@@ -260,8 +260,8 @@ describe('Rewards', function () {
 
             const expectedBalance2 = calcTotalReward(depositTs, claimTs, end - start, amount);
 
-            expect(await entr.transferCalled()).to.be.true;
-            expect(await entr.balanceOf(happyPirateAddress)).to.be.equal(expectedBalance1.add(expectedBalance2));
+            expect(await fdt.transferCalled()).to.be.true;
+            expect(await fdt.balanceOf(happyPirateAddress)).to.be.equal(expectedBalance1.add(expectedBalance2));
             expect(await rewards.owed(happyPirateAddress)).to.be.equal(0);
             expect(await rewards.balanceBefore()).to.be.equal(0);
         });
@@ -269,23 +269,23 @@ describe('Rewards', function () {
         it('works with multiple users', async function () {
             const { start, end } = await setupRewards();
 
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
             const deposit1Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance1 = calcTotalReward(start, deposit1Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1);
+            expect(await fdt.balanceOf(rewards.address)).to.equal(expectedBalance1);
 
-            await kernel.deposit(flyingParrotAddress, amount);
+            await comitium.deposit(flyingParrotAddress, amount);
             const deposit2Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance2 = calcTotalReward(deposit1Ts, deposit2Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
+            expect(await fdt.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
 
-            await kernel.deposit(userAddress, amount);
+            await comitium.deposit(userAddress, amount);
             const deposit3Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance3 = calcTotalReward(deposit2Ts, deposit3Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address))
+            expect(await fdt.balanceOf(rewards.address))
                 .to.equal(expectedBalance1.add(expectedBalance2).add(expectedBalance3));
 
             await helpers.moveAtTimestamp(start + 10 * time.day);
@@ -294,30 +294,30 @@ describe('Rewards', function () {
             const multiplier = await rewards.currentMultiplier();
             const expectedReward = multiplier.mul(amount).div(helpers.tenPow18);
 
-            expect(await entr.balanceOf(happyPirateAddress)).to.equal(expectedReward);
+            expect(await fdt.balanceOf(happyPirateAddress)).to.equal(expectedReward);
         });
 
         it('works fine after claim', async function () {
             const { start, end } = await setupRewards();
 
-            await kernel.deposit(happyPirateAddress, amount);
+            await comitium.deposit(happyPirateAddress, amount);
             const deposit1Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance1 = calcTotalReward(start, deposit1Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1);
+            expect(await fdt.balanceOf(rewards.address)).to.equal(expectedBalance1);
 
-            await kernel.deposit(flyingParrotAddress, amount);
+            await comitium.deposit(flyingParrotAddress, amount);
             const deposit2Ts = await helpers.getLatestBlockTimestamp();
             const multiplierAtDeposit2 = await rewards.currentMultiplier();
             const expectedBalance2 = calcTotalReward(deposit1Ts, deposit2Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
+            expect(await fdt.balanceOf(rewards.address)).to.equal(expectedBalance1.add(expectedBalance2));
 
-            await kernel.deposit(userAddress, amount);
+            await comitium.deposit(userAddress, amount);
             const deposit3Ts = await helpers.getLatestBlockTimestamp();
             const expectedBalance3 = calcTotalReward(deposit2Ts, deposit3Ts, end - start, amount);
 
-            expect(await entr.balanceOf(rewards.address))
+            expect(await fdt.balanceOf(rewards.address))
                 .to.equal(expectedBalance1.add(expectedBalance2).add(expectedBalance3));
 
             await helpers.moveAtTimestamp(start + 1 * time.day);
@@ -327,7 +327,7 @@ describe('Rewards', function () {
             const claim1Multiplier = await rewards.currentMultiplier();
             const expectedReward = claim1Multiplier.mul(amount).div(helpers.tenPow18);
 
-            expect(await entr.balanceOf(happyPirateAddress)).to.equal(expectedReward);
+            expect(await fdt.balanceOf(happyPirateAddress)).to.equal(expectedReward);
 
             // after the first claim is executed, move 1 more day into the future which would increase the
             // total reward by ~14.28 (one day worth of reward)
@@ -350,7 +350,7 @@ describe('Rewards', function () {
                 expectedReward2.gt(BigNumber.from(4).mul(helpers.tenPow18)) &&
                 expectedReward2.lt(BigNumber.from(5).mul(helpers.tenPow18))
             ).to.be.true;
-            expect(await entr.balanceOf(happyPirateAddress)).to.equal(expectedReward.add(expectedReward2));
+            expect(await fdt.balanceOf(happyPirateAddress)).to.equal(expectedReward.add(expectedReward2));
 
             await rewards.connect(flyingParrot).claim();
             const multiplier3 = await rewards.currentMultiplier();
@@ -358,7 +358,7 @@ describe('Rewards', function () {
             expect(
                 expectedReward3.gt(BigNumber.from(9).mul(helpers.tenPow18)) &&
                 expectedReward3.lt(BigNumber.from(10).mul(helpers.tenPow18))).to.be.true;
-            expect(await entr.balanceOf(flyingParrotAddress)).to.equal(expectedReward3);
+            expect(await fdt.balanceOf(flyingParrotAddress)).to.equal(expectedReward3);
         });
     });
 
@@ -366,7 +366,7 @@ describe('Rewards', function () {
         const startAt = await helpers.getLatestBlockTimestamp();
         const endsAt = startAt + 60 * 60 * 24 * 7;
         await rewards.connect(treasury).setupPullToken(await communityVault.getAddress(), startAt, endsAt, amount);
-        await entr.connect(communityVault).approve(rewards.address, amount);
+        await fdt.connect(communityVault).approve(rewards.address, amount);
 
         return { start: startAt, end: endsAt };
     }
@@ -382,8 +382,8 @@ describe('Rewards', function () {
         const cvValue = BigNumber.from(2800000).mul(helpers.tenPow18);
         const treasuryValue = BigNumber.from(4500000).mul(helpers.tenPow18);
 
-        await entr.mint(await communityVault.getAddress(), cvValue);
-        await entr.mint(await treasury.getAddress(), treasuryValue);
+        await fdt.mint(await communityVault.getAddress(), cvValue);
+        await fdt.mint(await treasury.getAddress(), treasuryValue);
     }
 
     async function setupSigners () {

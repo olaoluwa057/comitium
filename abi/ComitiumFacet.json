@@ -294,7 +294,7 @@
   },
   {
     "inputs": [],
-    "name": "entrStaked",
+    "name": "fdtStaked",
     "outputs": [
       {
         "internalType": "uint256",
@@ -313,7 +313,7 @@
         "type": "uint256"
       }
     ],
-    "name": "entrStakedAtTs",
+    "name": "fdtStakedAtTs",
     "outputs": [
       {
         "internalType": "uint256",
@@ -328,7 +328,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_entr",
+        "name": "_fdt",
         "type": "address"
       },
       {
@@ -337,7 +337,7 @@
         "type": "address"
       }
     ],
-    "name": "initKernel",
+    "name": "initComitium",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -436,7 +436,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct LibKernelStorage.Stake",
+        "internalType": "struct LibComitiumStorage.Stake",
         "name": "",
         "type": "tuple"
       }
