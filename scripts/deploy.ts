@@ -1,10 +1,10 @@
 import hardhat from 'hardhat';
 import * as deployer from '../utils/deploy';
-import { KernelFacet, OwnershipFacet, Rewards } from "../typechain";
+import { ComitiumFacet, OwnershipFacet, Rewards } from "../typechain";
 import { getDiamondCut } from "../utils/deploy";
 import { diamondAsFacet } from "../utils/diamond";
 
-async function deploy(entr: string, cv: string, sStart: string, sDays: string, rewardsAmount: string) {
+async function deploy(fdt: string, cv: string, sStart: string, sDays: string, rewardsAmount: string) {
     const days = Number.parseInt(sDays);
     const start = Number.parseInt(sStart)
 
@@ -13,7 +13,7 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
     const deployerAddress = await deployers[0].getAddress();
 
     /**
-     * Deploying Kernel
+     * Deploying Comitium
      */
     console.log('Deploying DiamondCutFacet...');
     const cutFacet = await deployer.deployContract('DiamondCutFacet');
@@ -31,23 +31,23 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
     const crf = await deployer.deployContract('ChangeRewardsFacet');
     console.log(`ChangeRewardsFacet deployed to: ${crf.address}`);
 
-    console.log('Deploying KernelFacet...');
-    const kernelFacet = await deployer.deployContract('KernelFacet');
-    console.log(`KernelFacet deployed at: ${kernelFacet.address}`);
+    console.log('Deploying ComitiumFacet...');
+    const comitiumFacet = await deployer.deployContract('ComitiumFacet');
+    console.log(`ComitiumFacet deployed at: ${comitiumFacet.address}`);
 
-    console.log('Deploying Kernel (Diamond)...');
+    console.log('Deploying Comitium (Diamond)...');
     const diamond = await deployer.deployDiamond(
-        'Kernel',
-        [cutFacet, loupeFacet, ownershipFacet, crf, kernelFacet],
+        'Comitium',
+        [cutFacet, loupeFacet, ownershipFacet, crf, comitiumFacet],
         deployerAddress,
     );
-    console.log(`Kernel (Diamond) deployed at: ${diamond.address}`);
+    console.log(`Comitium (Diamond) deployed at: ${diamond.address}`);
 
     /**
      * Deploying Rewards
      */
     console.log('Deploying Rewards...');
-    const rewards = (await deployer.deployContract('Rewards', [deployerAddress, entr, diamond.address])) as Rewards;
+    const rewards = (await deployer.deployContract('Rewards', [deployerAddress, fdt, diamond.address])) as Rewards;
     console.log(`Rewards deployed at: ${rewards.address}`);
 
     console.log('Setup Rewards...');
@@ -55,12 +55,12 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
     console.log(`Rewards have been set up. Go ahead and approve ${rewardsAmount} from the Community Vault`);
 
     /**
-     * Initialise Kernel
+     * Initialise Comitium
      */
-    console.log('Initialising Kernel...');
-    const kf = (await diamondAsFacet(diamond, 'KernelFacet')) as KernelFacet;
-    await kf.initKernel(entr, rewards.address);
-    console.log('Initialised Kernel');
+    console.log('Initialising Comitium...');
+    const kf = (await diamondAsFacet(diamond, 'ComitiumFacet')) as ComitiumFacet;
+    await kf.initComitium(fdt, rewards.address);
+    console.log('Initialised Comitium');
 
     /**
      * Verify Contracts
@@ -89,17 +89,17 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
         constructorArguments: []
     });
 
-    console.log('Verifying KernelFacet on Etherscan...');
+    console.log('Verifying ComitiumFacet on Etherscan...');
     await hardhat.run('verify:verify', {
-        address: kernelFacet.address,
+        address: comitiumFacet.address,
         constructorArguments: []
     });
 
-    console.log('Verifying Kernel (Diamond) on Etherscan...');
+    console.log('Verifying Comitium (Diamond) on Etherscan...');
     await hardhat.run('verify:verify', {
         address: diamond.address,
         constructorArguments: [
-            getDiamondCut([cutFacet, loupeFacet, ownershipFacet, crf, kernelFacet]),
+            getDiamondCut([cutFacet, loupeFacet, ownershipFacet, crf, comitiumFacet]),
             deployerAddress
         ]
     });
@@ -107,7 +107,7 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
     console.log('Verifying Rewards on Etherscan...');
     await hardhat.run('verify:verify', {
         address: rewards.address,
-        constructorArguments: [deployerAddress, entr, diamond.address]
+        constructorArguments: [deployerAddress, fdt, diamond.address]
     });
 
     console.log(`Finished Deployment!`);
@@ -115,8 +115,8 @@ async function deploy(entr: string, cv: string, sStart: string, sDays: string, r
     console.log('DiamondLoupeFacet address: ', loupeFacet.address);
     console.log('OwnershipFacet address: ', ownershipFacet.address);
     console.log('ChangeRewardsFacet address: ', crf.address);
-    console.log('KernelFacet address: ', kernelFacet.address);
-    console.log('Kernel (Diamond) address: ', diamond.address);
+    console.log('ComitiumFacet address: ', comitiumFacet.address);
+    console.log('Comitium (Diamond) address: ', diamond.address);
     console.log('Rewards address:', rewards.address);
 }
 

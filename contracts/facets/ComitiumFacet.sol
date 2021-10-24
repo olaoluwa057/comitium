@@ -2,13 +2,13 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IKernel.sol";
-import "../libraries/LibKernelStorage.sol";
+import "../interfaces/IComitium.sol";
+import "../libraries/LibComitiumStorage.sol";
 import "../libraries/LibOwnership.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract KernelFacet {
+contract ComitiumFacet {
     using SafeMath for uint256;
 
     uint256 constant public MAX_LOCK = 365 days;
@@ -21,26 +21,26 @@ contract KernelFacet {
     event DelegatedPowerIncreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
     event DelegatedPowerDecreased(address indexed from, address indexed to, uint256 amount, uint256 to_newDelegatedPower);
 
-    function initKernel(address _entr, address _rewards) public {
-        require(_entr != address(0), "ENTR address must not be 0x0");
+    function initComitium(address _fdt, address _rewards) public {
+        require(_fdt != address(0), "FDT address must not be 0x0");
 
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
 
-        require(!ds.initialized, "Kernel: already initialized");
+        require(!ds.initialized, "Comitium: already initialized");
         LibOwnership.enforceIsContractOwner();
 
         ds.initialized = true;
 
-        ds.entr = IERC20(_entr);
+        ds.fdt = IERC20(_fdt);
         ds.rewards = IRewards(_rewards);
     }
 
-    // deposit allows a user to add more entr to his staked balance
+    // deposit allows a user to add more fdt to his staked balance
     function deposit(uint256 amount) public {
         require(amount > 0, "Amount must be greater than 0");
 
-       LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
-        uint256 allowance = ds.entr.allowance(msg.sender, address(this));
+       LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
+        uint256 allowance = ds.fdt.allowance(msg.sender, address(this));
         require(allowance >= amount, "Token allowance too small");
 
         // this must be called before the user's balance is updated so the rewards contract can calculate
@@ -51,7 +51,7 @@ contract KernelFacet {
 
         uint256 newBalance = balanceOf(msg.sender).add(amount);
         _updateUserBalance(ds.userStakeHistory[msg.sender], newBalance);
-        _updateLockedEntr(entrStakedAtTs(block.timestamp).add(amount));
+        _updateLockedFdt(fdtStakedAtTs(block.timestamp).add(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -60,7 +60,7 @@ contract KernelFacet {
 
             emit DelegatedPowerIncreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
-        ds.entr.transferFrom(msg.sender, address(this), amount);
+        ds.fdt.transferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, amount, newBalance);
     }
@@ -73,7 +73,7 @@ contract KernelFacet {
         uint256 balance = balanceOf(msg.sender);
         require(balance >= amount, "Insufficient balance");
 
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
 
         // this must be called before the user's balance is updated so the rewards contract can calculate
         // the amount owed correctly
@@ -82,7 +82,7 @@ contract KernelFacet {
         }
 
         _updateUserBalance(ds.userStakeHistory[msg.sender], balance.sub(amount));
-        _updateLockedEntr(entrStakedAtTs(block.timestamp).sub(amount));
+        _updateLockedFdt(fdtStakedAtTs(block.timestamp).sub(amount));
 
         address delegatedTo = userDelegatedTo(msg.sender);
         if (delegatedTo != address(0)) {
@@ -92,7 +92,7 @@ contract KernelFacet {
             emit DelegatedPowerDecreased(msg.sender, delegatedTo, amount, newDelegatedPower);
         }
 
-        ds.entr.transfer(msg.sender, amount);
+        ds.fdt.transfer(msg.sender, amount);
 
         emit Withdraw(msg.sender, amount, balance.sub(amount));
     }
@@ -103,9 +103,9 @@ contract KernelFacet {
         require(timestamp <= block.timestamp + MAX_LOCK, "Timestamp too big");
         require(balanceOf(msg.sender) > 0, "Sender has no balance");
 
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
-        LibKernelStorage.Stake[] storage checkpoints = ds.userStakeHistory[msg.sender];
-        LibKernelStorage.Stake storage currentStake = checkpoints[checkpoints.length - 1];
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
+        LibComitiumStorage.Stake[] storage checkpoints = ds.userStakeHistory[msg.sender];
+        LibComitiumStorage.Stake storage currentStake = checkpoints[checkpoints.length - 1];
 
         require(timestamp > currentStake.expiryTimestamp, "New timestamp lower than current lock timestamp");
 
@@ -126,7 +126,7 @@ contract KernelFacet {
         uint256 senderBalance = balanceOf(msg.sender);
         require(senderBalance > 0, "No balance to delegate");
 
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
 
         emit Delegate(msg.sender, to);
 
@@ -153,25 +153,25 @@ contract KernelFacet {
         return delegate(address(0));
     }
 
-    // balanceOf returns the current ENTR balance of a user (bonus not included)
+    // balanceOf returns the current FDT balance of a user (bonus not included)
     function balanceOf(address user) public view returns (uint256) {
         return balanceAtTs(user, block.timestamp);
     }
 
-    // balanceAtTs returns the amount of ENTR that the user currently staked (bonus NOT included)
+    // balanceAtTs returns the amount of FDT that the user currently staked (bonus NOT included)
     function balanceAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibComitiumStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         return stake.amount;
     }
 
     // stakeAtTs returns the Stake object of the user that was valid at `timestamp`
-    function stakeAtTs(address user, uint256 timestamp) public view returns (LibKernelStorage.Stake memory) {
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
-        LibKernelStorage.Stake[] storage stakeHistory = ds.userStakeHistory[user];
+    function stakeAtTs(address user, uint256 timestamp) public view returns (LibComitiumStorage.Stake memory) {
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
+        LibComitiumStorage.Stake[] storage stakeHistory = ds.userStakeHistory[user];
 
         if (stakeHistory.length == 0 || timestamp < stakeHistory[0].timestamp) {
-            return LibKernelStorage.Stake(block.timestamp, 0, block.timestamp, address(0));
+            return LibComitiumStorage.Stake(block.timestamp, 0, block.timestamp, address(0));
         }
 
         uint256 min = 0;
@@ -201,7 +201,7 @@ contract KernelFacet {
 
     // votingPowerAtTs returns the voting power (bonus included) + delegated voting power for a user at a point in time
     function votingPowerAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibComitiumStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         uint256 ownVotingPower;
 
@@ -219,15 +219,15 @@ contract KernelFacet {
         return ownVotingPower.add(delegatedVotingPower);
     }
 
-    // entrStaked returns the total raw amount of ENTR staked at the current block
-    function entrStaked() public view returns (uint256) {
-        return entrStakedAtTs(block.timestamp);
+    // fdtStaked returns the total raw amount of FDT staked at the current block
+    function fdtStaked() public view returns (uint256) {
+        return fdtStakedAtTs(block.timestamp);
     }
 
-    // entrStakedAtTs returns the total raw amount of ENTR users have deposited into the contract
+    // fdtStakedAtTs returns the total raw amount of FDT users have deposited into the contract
     // it does not include any bonus
-    function entrStakedAtTs(uint256 timestamp) public view returns (uint256) {
-        return _checkpointsBinarySearch(LibKernelStorage.kernelStorage().entrStakedHistory, timestamp);
+    function fdtStakedAtTs(uint256 timestamp) public view returns (uint256) {
+        return _checkpointsBinarySearch(LibComitiumStorage.comitiumStorage().fdtStakedHistory, timestamp);
     }
 
     // delegatedPower returns the total voting power that a user received from other users
@@ -237,7 +237,7 @@ contract KernelFacet {
 
     // delegatedPowerAtTs returns the total voting power that a user received from other users at a point in time
     function delegatedPowerAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        return _checkpointsBinarySearch(LibKernelStorage.kernelStorage().delegatedPowerHistory[user], timestamp);
+        return _checkpointsBinarySearch(LibComitiumStorage.comitiumStorage().delegatedPowerHistory[user], timestamp);
     }
 
     // same as multiplierAtTs but for the current block timestamp
@@ -248,28 +248,28 @@ contract KernelFacet {
     // multiplierAtTs calculates the multiplier at a given timestamp based on the user's stake a the given timestamp
     // it includes the decay mechanism
     function multiplierAtTs(address user, uint256 timestamp) public view returns (uint256) {
-        LibKernelStorage.Stake memory stake = stakeAtTs(user, timestamp);
+        LibComitiumStorage.Stake memory stake = stakeAtTs(user, timestamp);
 
         return _stakeMultiplier(stake, timestamp);
     }
 
     // userLockedUntil returns the timestamp until the user's balance is locked
     function userLockedUntil(address user) public view returns (uint256) {
-        LibKernelStorage.Stake memory c = stakeAtTs(user, block.timestamp);
+        LibComitiumStorage.Stake memory c = stakeAtTs(user, block.timestamp);
 
         return c.expiryTimestamp;
     }
 
     // userDelegatedTo returns the address to which a user delegated their voting power; address(0) if not delegated
     function userDelegatedTo(address user) public view returns (address) {
-        LibKernelStorage.Stake memory c = stakeAtTs(user, block.timestamp);
+        LibComitiumStorage.Stake memory c = stakeAtTs(user, block.timestamp);
 
         return c.delegatedTo;
     }
 
     // _checkpointsBinarySearch executes a binary search on a list of checkpoints that's sorted chronologically
     // looking for the closest checkpoint that matches the specified timestamp
-    function _checkpointsBinarySearch(LibKernelStorage.Checkpoint[] storage checkpoints, uint256 timestamp) internal view returns (uint256) {
+    function _checkpointsBinarySearch(LibComitiumStorage.Checkpoint[] storage checkpoints, uint256 timestamp) internal view returns (uint256) {
         if (checkpoints.length == 0 || timestamp < checkpoints[0].timestamp) {
             return 0;
         }
@@ -295,7 +295,7 @@ contract KernelFacet {
     }
 
     // _stakeMultiplier calculates the multiplier for the given stake at the given timestamp
-    function _stakeMultiplier(LibKernelStorage.Stake memory stake, uint256 timestamp) internal view returns (uint256) {
+    function _stakeMultiplier(LibComitiumStorage.Stake memory stake, uint256 timestamp) internal view returns (uint256) {
         if (timestamp >= stake.expiryTimestamp) {
             return BASE_MULTIPLIER;
         }
@@ -311,16 +311,16 @@ contract KernelFacet {
     // _updateUserBalance manages an array of checkpoints
     // if there's already a checkpoint for the same timestamp, the amount is updated
     // otherwise, a new checkpoint is inserted
-    function _updateUserBalance(LibKernelStorage.Stake[] storage checkpoints, uint256 amount) internal {
+    function _updateUserBalance(LibComitiumStorage.Stake[] storage checkpoints, uint256 amount) internal {
         if (checkpoints.length == 0) {
-            checkpoints.push(LibKernelStorage.Stake(block.timestamp, amount, block.timestamp, address(0)));
+            checkpoints.push(LibComitiumStorage.Stake(block.timestamp, amount, block.timestamp, address(0)));
         } else {
-            LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+            LibComitiumStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
             if (old.timestamp == block.timestamp) {
                 old.amount = amount;
             } else {
-                checkpoints.push(LibKernelStorage.Stake(block.timestamp, amount, old.expiryTimestamp, old.delegatedTo));
+                checkpoints.push(LibComitiumStorage.Stake(block.timestamp, amount, old.expiryTimestamp, old.delegatedTo));
             }
         }
     }
@@ -328,11 +328,11 @@ contract KernelFacet {
     // _updateUserLock updates the expiry timestamp on the user's stake
     // it assumes that if the user already has a balance, which is checked for in the lock function
     // then there must be at least 1 checkpoint
-    function _updateUserLock(LibKernelStorage.Stake[] storage checkpoints, uint256 expiryTimestamp) internal {
-        LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+    function _updateUserLock(LibComitiumStorage.Stake[] storage checkpoints, uint256 expiryTimestamp) internal {
+        LibComitiumStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
         if (old.timestamp < block.timestamp) {
-            checkpoints.push(LibKernelStorage.Stake(block.timestamp, old.amount, expiryTimestamp, old.delegatedTo));
+            checkpoints.push(LibComitiumStorage.Stake(block.timestamp, old.amount, expiryTimestamp, old.delegatedTo));
         } else {
             old.expiryTimestamp = expiryTimestamp;
         }
@@ -341,34 +341,34 @@ contract KernelFacet {
     // _updateUserDelegatedTo updates the delegateTo property on the user's stake
     // it assumes that if the user already has a balance, which is checked for in the delegate function
     // then there must be at least 1 checkpoint
-    function _updateUserDelegatedTo(LibKernelStorage.Stake[] storage checkpoints, address to) internal {
-        LibKernelStorage.Stake storage old = checkpoints[checkpoints.length - 1];
+    function _updateUserDelegatedTo(LibComitiumStorage.Stake[] storage checkpoints, address to) internal {
+        LibComitiumStorage.Stake storage old = checkpoints[checkpoints.length - 1];
 
         if (old.timestamp < block.timestamp) {
-            checkpoints.push(LibKernelStorage.Stake(block.timestamp, old.amount, old.expiryTimestamp, to));
+            checkpoints.push(LibComitiumStorage.Stake(block.timestamp, old.amount, old.expiryTimestamp, to));
         } else {
             old.delegatedTo = to;
         }
     }
 
     // _updateDelegatedPower updates the power delegated TO the user in the checkpoints history
-    function _updateDelegatedPower(LibKernelStorage.Checkpoint[] storage checkpoints, uint256 amount) internal {
+    function _updateDelegatedPower(LibComitiumStorage.Checkpoint[] storage checkpoints, uint256 amount) internal {
         if (checkpoints.length == 0 || checkpoints[checkpoints.length - 1].timestamp < block.timestamp) {
-            checkpoints.push(LibKernelStorage.Checkpoint(block.timestamp, amount));
+            checkpoints.push(LibComitiumStorage.Checkpoint(block.timestamp, amount));
         } else {
-            LibKernelStorage.Checkpoint storage old = checkpoints[checkpoints.length - 1];
+            LibComitiumStorage.Checkpoint storage old = checkpoints[checkpoints.length - 1];
             old.amount = amount;
         }
     }
 
-    // _updateLockedEntr stores the new `amount` into the ENTR locked history
-    function _updateLockedEntr(uint256 amount) internal {
-        LibKernelStorage.Storage storage ds = LibKernelStorage.kernelStorage();
+    // _updateLockedFdt stores the new `amount` into the FDT locked history
+    function _updateLockedFdt(uint256 amount) internal {
+        LibComitiumStorage.Storage storage ds = LibComitiumStorage.comitiumStorage();
 
-        if (ds.entrStakedHistory.length == 0 || ds.entrStakedHistory[ds.entrStakedHistory.length - 1].timestamp < block.timestamp) {
-            ds.entrStakedHistory.push(LibKernelStorage.Checkpoint(block.timestamp, amount));
+        if (ds.fdtStakedHistory.length == 0 || ds.fdtStakedHistory[ds.fdtStakedHistory.length - 1].timestamp < block.timestamp) {
+            ds.fdtStakedHistory.push(LibComitiumStorage.Checkpoint(block.timestamp, amount));
         } else {
-            LibKernelStorage.Checkpoint storage old = ds.entrStakedHistory[ds.entrStakedHistory.length - 1];
+            LibComitiumStorage.Checkpoint storage old = ds.fdtStakedHistory[ds.fdtStakedHistory.length - 1];
             old.amount = amount;
         }
     }

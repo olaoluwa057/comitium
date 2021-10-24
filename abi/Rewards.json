@@ -13,7 +13,7 @@
       },
       {
         "internalType": "address",
-        "name": "_kernel",
+        "name": "_comitium",
         "type": "address"
       }
     ],
@@ -93,6 +93,19 @@
   },
   {
     "inputs": [],
+    "name": "comitium",
+    "outputs": [
+      {
+        "internalType": "contract IComitium",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "currentMultiplier",
     "outputs": [
       {
@@ -112,19 +125,6 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "kernel",
-    "outputs": [
-      {
-        "internalType": "contract IKernel",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -245,11 +245,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_kernel",
+        "name": "_comitium",
         "type": "address"
       }
     ],
-    "name": "setKernel",
+    "name": "setComitium",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

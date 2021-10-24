@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./interfaces/IKernel.sol";
+import "./interfaces/IComitium.sol";
 
 contract Rewards is Ownable {
     using SafeMath for uint256;
@@ -30,26 +30,26 @@ contract Rewards is Ownable {
     mapping(address => uint256) public userMultiplier;
     mapping(address => uint256) public owed;
 
-    IKernel public kernel;
+    IComitium public comitium;
     IERC20 public rewardToken;
 
     event Claim(address indexed user, uint256 amount);
 
-    constructor(address _owner, address _token, address _kernel) {
+    constructor(address _owner, address _token, address _comitium) {
         require(_token != address(0), "reward token must not be 0x0");
-        require(_kernel != address(0), "kernel address must not be 0x0");
+        require(_comitium != address(0), "comitium address must not be 0x0");
 
         transferOwnership(_owner);
 
         rewardToken = IERC20(_token);
-        kernel = IKernel(_kernel);
+        comitium = IComitium(_comitium);
     }
 
-    // registerUserAction is called by the Kernel every time the user does a deposit or withdrawal in order to
+    // registerUserAction is called by the Comitium every time the user does a deposit or withdrawal in order to
     // account for the changes in reward that the user should get
     // it updates the amount owed to the user without transferring the funds
     function registerUserAction(address user) public {
-        require(msg.sender == address(kernel), 'only callable by kernel');
+        require(msg.sender == address(comitium), 'only callable by comitium');
 
         _calculateOwed(user);
     }
@@ -84,15 +84,15 @@ contract Rewards is Ownable {
             return;
         }
 
-        uint256 totalStakedEntr = kernel.entrStaked();
-        // if there's no entr staked, it doesn't make sense to ackFunds because there's nobody to distribute them to
+        uint256 totalStakedFdt = comitium.fdtStaked();
+        // if there's no fdt staked, it doesn't make sense to ackFunds because there's nobody to distribute them to
         // and the calculation would fail anyways due to division by 0
-        if (totalStakedEntr == 0) {
+        if (totalStakedFdt == 0) {
             return;
         }
 
         uint256 diff = balanceNow.sub(balanceBefore);
-        uint256 multiplier = currentMultiplier.add(diff.mul(decimals).div(totalStakedEntr));
+        uint256 multiplier = currentMultiplier.add(diff.mul(decimals).div(totalStakedFdt));
 
         balanceBefore = balanceNow;
         currentMultiplier = multiplier;
@@ -131,12 +131,12 @@ contract Rewards is Ownable {
         }
     }
 
-    // setKernel sets the address of the EnterDao Kernel into the state variable
-    function setKernel(address _kernel) public {
-        require(_kernel != address(0), 'kernel address must not be 0x0');
+    // setComitium sets the address of the FiatDao Comitium into the state variable
+    function setComitium(address _comitium) public {
+        require(_comitium != address(0), 'comitium address must not be 0x0');
         require(msg.sender == owner(), '!owner');
 
-        kernel = IKernel(_kernel);
+        comitium = IComitium(_comitium);
     }
 
     // _pullToken calculates the amount based on the time passed since the last pull relative
@@ -185,6 +185,6 @@ contract Rewards is Ownable {
     function _userPendingReward(address user) internal view returns (uint256) {
         uint256 multiplier = currentMultiplier.sub(userMultiplier[user]);
 
-        return kernel.balanceOf(user).mul(multiplier).div(decimals);
+        return comitium.balanceOf(user).mul(multiplier).div(decimals);
     }
 }
