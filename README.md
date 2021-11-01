@@ -1,11 +1,11 @@
-# FiatDao Comitium
+# FIAT DAO Comitium
 
 Implements continuous rewards for staking FDT in the DAO. Implements logic for determining DAO voting power based upon amount of FDT deposited (which becomes vFDT) plus a multiplier (up to 2x) awarded to those who lock their FDT in the DAO for a specified period (up to 1 year). Those that lock their vFDT for 1 year receive a 2x multiplier; those that lock their vFDT for 6 months receive a 1.5x multiplier, and so on. Also allows users to delegate their vFDT voting power to a secondary wallet address.
 **NOTE:** The vFDT multiplier ONLY affects voting power; it does NOT affect rewards. All users who stake FDT receive the same reward rate regardless of the amount of time they have locked or not locked.
 
 ##  Contracts
 ### Comitium.sol
-Allows users to deposit FDT into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vFDT voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/FiatDAO/FIAT-Comitium/blob/master/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/FiatDAO/FIAT-DAO/blob/master/contracts/Governance.sol) contract to specify how much voting power (vFDT) a wallet address has for use in voting on or creating DAO proposals.
+Allows users to deposit FDT into the DAO, withdraw it, lock for a time period to increase their voting power (does not affect rewards), and delegate their vFDT voting power to a secondary wallet address. Interacts with [Rewards.sol](https://github.com/fiatdao/comitium/blob/main/contracts/Rewards.sol) contract to check balances and update upon deposit/withdraw. Interacts with [Governance.sol](https://github.com/fiatdao/senatus/blob/main/contracts/Governance.sol) contract to specify how much voting power (vFDT) a wallet address has for use in voting on or creating DAO proposals.
 #### Actions
 - deposit
 - withdraw
@@ -13,7 +13,7 @@ Allows users to deposit FDT into the DAO, withdraw it, lock for a time period to
 - delegate
 
 ### Rewards.sol
-Rewards users who stake their FDT on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/FIAT-DAO/FIAT-YieldFarming/blob/master/contracts/CommunityVault.sol) which is the source of the FDT rewards. The `Comitium` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
+Rewards users who stake their FDT on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/fiatdao/liquidity-mining/blob/main/contracts/CommunityVault.sol) which is the source of the FDT rewards. The `Comitium` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
 #### How it works
 1. every time the `acKFunds` function detects a balance change, the multiplier is recalculated by the following formula:
 ```
@@ -30,7 +30,7 @@ where:
 3. update the oldUserMultiplier with the current multiplier -- signaling that we already calculated how much was owed to the user since his last action
 
 ## Smart Contract Architecture
-FiatDao Comitium is a fork of BarnBridge Barn. It shares the same architecture:
+FIAT DAO Comitium is a fork of BarnBridge Barn. It shares the same architecture:
 
 ![dao sc architecture](https://user-images.githubusercontent.com/4047772/120464398-8c8cf400-c3a5-11eb-8cb8-a105eeaaa9e9.png)
 
@@ -71,9 +71,9 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     # Restart terminal and/or run commands given at the end of the installation script
     nvm install 12
     nvm use 12
-### Use Git to pull down the FiatDao Comitium repository from GitHub
-    git clone git@github.com:FiatDAO/FIAT-Comitium.git
-    cd FIAT-Comitium
+### Use Git to pull down the FIAT DAO Comitium repository from GitHub
+    git clone git@github.com:fiatdao/comitium.git
+    cd comitium
 ### Create config.ts using the sample template config.sample.ts
     cp config.sample.ts config.ts
 
@@ -153,7 +153,7 @@ Check out more detailed smart contract Slither graphs with all the dependencies:
     npm run coverage
 
 ## Audits
-FiatDao Comitium is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
+FIAT DAO Comitium is a fork of BarnBridge Barn. Here you can find the audits for the original contract:
 
 - [QuantStamp](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Quanstamp.pdf)
 - [Haechi](https://github.com/BarnBridge/BarnBridge-PM/blob/master/audits/BarnBridge%20DAO%20audit%20by%20Haechi.pdf)
