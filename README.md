@@ -13,7 +13,7 @@ Allows users to deposit FDT into the DAO, withdraw it, lock for a time period to
 - delegate
 
 ### Rewards.sol
-Rewards users who stake their FDT on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/fiatdao/liquidity-mining/blob/main/contracts/CommunityVault.sol) which is the source of the FDT rewards. The `Comitium` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
+Rewards users who stake their FDT on a continuous basis. Allows users to Claim their rewards which are then Transfered to their wallet. Interacts with the [CommunityVault.sol](https://github.com/fiatdao/jubilee/blob/main/contracts/CommunityVault.sol) which is the source of the FDT rewards. The `Comitium` contract calls the `registerUserAction` hook on each `deposit`/`withdraw` the user executes, and sends the results to the `Rewards` contract.
 #### How it works
 1. every time the `acKFunds` function detects a balance change, the multiplier is recalculated by the following formula:
 ```
@@ -177,26 +177,26 @@ npx hardhat deploy \
 
 ### Mainnet
 ```shell
-DiamondCutFacet deployed to: 0xCD98aFdc3f8B56daa318eBa929F1A865AeE7cc4f
-DiamondLoupeFacet deployed to: 0xEdf1BcC415f60989c176834E8fd5eAcbd86b9aA2
-OwnershipFacet deployed to: 0x9f34eCc82405Dc4eb220B46FA70Bfba5AfA802BF
-ChangeRewardsFacet deployed to: 0xe915D9dc6FBdEe48FDEa4F832C69Dc283588bA61
-ComitiumFacet deployed at: 0xa6bE5520c1d2f443E346B93330F55dC7Cfb23b9B
+DiamondCutFacet deployed to: 0x9D666232eB3CB0B8Eda590024Ff46FbC94C75ecA
+DiamondLoupeFacet deployed to: 0xbDb02f99cf77fADDa54f418663139B636A16c1e1
+OwnershipFacet deployed to: 0xDBd604f170980910283D46d7F30E2CC2F1983871
+ChangeRewardsFacet deployed to: 0x138F85d004B6333365E9A8282972C74132128F74
+ComitiumFacet deployed at: 0x6cc9FC46d8436Ac5302D1145258344a3CfBaE559
 -----
-Comitium deployed at: 0xD2c83AB0bee469ab5853c1e60bf8B663094EDca5
-Rewards deployed at: 0xe4eD7DBF867c4C3Dd24D31Dc55F4A475634a5851
+Comitium deployed at: 0x4645d1cF3f4cE59b06008642E74E60e8F80c8b58
+Rewards deployed at: 0x2458Fd408F5D2c61a4819E9d6DB43A81011E42a7
 ```
 
 ### Rinkeby
 ```shell
-DiamondCutFacet deployed to: 0xD4440dC5A06182f0e936C3a1B2472b3F16E29f62
-DiamondLoupeFacet deployed to: 0xC550FAcBB8E2C4483aa0f84774b2C2E06e38f958
-OwnershipFacet deployed to: 0x1B2D2C069fCF035d865E439Bb1B5584524FD87ce
-ChangeRewardsFacet deployed to: 0x01C7224D42De4b11451E8BfBE721ccaFe79fe1c5
-ComitiumFacet deployed at: 0x6A1819f39596ADd71F22c0777B161f278DFc882a
+DiamondCutFacet deployed to: 0x58B83C74c4068E4683075B1B94DFc87b6439928c
+DiamondLoupeFacet deployed to: 0xe8253F1f9c0Fb6FC17e08973205be736827c4F67
+OwnershipFacet deployed to: 0xd36102Ea845AF618267de630c73eD89c1022007E
+ChangeRewardsFacet deployed to: 0xB86878840007a3B53919378d09ae904114cC8d02
+ComitiumFacet deployed at: 0x16B843a0EcBe562444261B1cDAF061e6913c30Bf
 -----
-Comitium deployed at: 0x48fc1fc9F88fdc98302E40aF50B32B06dDeB7713
-Rewards deployed at: 0x9778409eF13D797F9218dC71bcfc368976D47B5d
+Comitium deployed at: 0x893210b51C2489E7F9Db36C4B0C5d791A9E0C580
+Rewards deployed at: 0x37518094FC8208f71C6eD11082c5B86cE22689B8
 ```
 
 ## Discussion
