@@ -171,7 +171,7 @@ npx hardhat deploy \
     --fdt <FDT token> \
     --cv <community vault address> \
     --start <start timestamp for rewards> \
-    --end <end timestamp for rewards> \
+    --days <the number of days the rewards should run> \
     --rewards-amount <rewards amount> \
 ```
 
