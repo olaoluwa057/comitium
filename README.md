@@ -32,7 +32,7 @@ where:
 ## Smart Contract Architecture
 FIAT DAO Comitium is a fork of BarnBridge Barn. It shares the same architecture:
 
-![dao sc architecture](https://user-images.githubusercontent.com/4047772/120464398-8c8cf400-c3a5-11eb-8cb8-a105eeaaa9e9.png)
+![dao sc architecture](https://user-images.githubusercontent.com/45110941/141505001-0e092e96-68f7-4bd0-84dc-e041290c52e4.png)
 
 
 Check out more detailed smart contract Slither graphs with all the dependencies: [BarnBridge-Barn Slither Graphs](https://github.com/BarnBridge/sc-graphs/tree/main/BarnBridge-Barn).
